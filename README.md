@@ -32,7 +32,7 @@ Will be prompted for the following:
 * Running Target
 * Misc - Used for any modifier not valid above.
 
-![ranged](docs\ranged.png)
+![ranged](docs/ranged.png)
 
 Psychic Powers
 
