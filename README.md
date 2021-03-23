@@ -43,4 +43,5 @@ Effects
 1. [Blood Splatter](docs/blood_splatter.md)
 2. [LightningBolt](docs/lightningbolt.md)
 
-Character Sheet Update
+[Character Sheet Update](docs/charactersheet.md)
+
