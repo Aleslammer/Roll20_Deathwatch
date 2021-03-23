@@ -1,4 +1,5 @@
 # Roll20_Deathwatch
+
 Location for Deathwatch API and Character Sheets for Roll20.
 
 API scripts.
@@ -14,9 +15,10 @@ Will be prompted for the following:
 * Misc - Used for any modifier not valid above.
 * Power Level - The power level to use if chosen for a force weapons.
 
-![](docs/melee.png) 
+![melee](docs/melee.png)
 Standard Attack
-![](docs/melee-force.png) 
+
+![melee-force](docs/melee-force.png)
 ForceAttack
 2. DW_RangedAttack - A ranged attack that will target an enemy and determine hit locations.  Also tracks ammo on the sheet and determines hit locations.
 
@@ -29,14 +31,16 @@ Will be prompted for the following:
 * Running Target
 * Misc - Used for any modifier not valid above.
 
-![](docs\ranged.png)
+![ranged](docs\ranged.png)
 
 Psychic Powers
+
 1. [Psy_Avenger](docs/psyavenger.md)
 2. [Psy_Smite](docs/psysmite.md)
 
 Effects
-1. Blood Splatter
-2. LightningBolt
+
+1. [Blood Splatter](docs/blood_splatter.md)
+2. [LightningBolt](docs/lightningbolt.md)
 
 Character Sheet Update
