@@ -4,7 +4,7 @@ Location for Deathwatch API and Character Sheets for Roll20.
 
 API scripts.
 
-1. DW_MeleeAttack - A melee attack script that will target an enemy and determine hit locations.   Also can be used for force weapons to determine psychic damage.
+1. [DW_MeleeAttack](scripts/DW_MeleeAttack.js) - A melee attack script that will target an enemy and determine hit locations.   Also can be used for force weapons to determine psychic damage.
 Will be prompted for the following:
 
 * All Out Attack
@@ -20,7 +20,7 @@ Standard Attack
 
 ![melee-force](docs/melee-force.png)
 ForceAttack
-2. DW_RangedAttack - A ranged attack that will target an enemy and determine hit locations.  Also tracks ammo on the sheet and determines hit locations.
+2. [DW_RangedAttack](scripts/DW_RangedAttack.js) - A ranged attack that will target an enemy and determine hit locations.  Also tracks ammo on the sheet and determines hit locations.
 
 Will be prompted for the following:
 
@@ -44,4 +44,3 @@ Effects
 2. [LightningBolt](docs/lightningbolt.md)
 
 [Character Sheet Update](docs/charactersheet.md)
-
