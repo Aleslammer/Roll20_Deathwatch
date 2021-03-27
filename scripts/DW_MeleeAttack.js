@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.1.0';
+    var version = '0.2.0';
 	log("-=> DW_MeleeAttack v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -233,7 +233,7 @@ on("chat:message", function(msg){
             sendChatMessage += `\n--vfx_opt|${params.targetID} BloodSplat`;
             if (params.powerLevel > 0)
             {
-                sendChatMessage += `\n--Willpower Test:|Yours [[${params.willDos}[${params.willRollMod}]]] vs ${params.targetName}[[${params.tarWillDos}[${params.tarWillRoll}]]]`;
+                sendChatMessage += `\n--Willpower Test:|Yours [[${params.willDos} [${params.willRollMod}]]] vs ${params.targetName}[[${params.tarWillDos} [${params.tarWillRoll}]]]`;
                 params.forceDamage ? sendChatMessage += `\n--Force Damage:|[[${params.forceDamage}]]` : null;
                 if ((((params.willRoll % 11) == 0) && params.powerLevel == 2) || (params.powerLevel == 3))
                 {
@@ -243,10 +243,19 @@ on("chat:message", function(msg){
             }
         }
 
+        var awValue = "";
         for(lcv = 0; lcv < params.hits; lcv++)
         {
             var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-            sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[${params.damageRoll}+[[${params.strengthBonus}]]]]`;
+            sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[ [$Atk${lcv+1}] ${params.damageRoll}+[[${params.strengthBonus}]]]]`;
+            lcv > 0 ? awValue+=";" : null;
+            awValue += `${whereHit}-[^Atk${lcv+1}]`;
+        }
+        
+        // if we hit then add the hits rolls
+        if (params.hits > 0)
+        {
+            sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue}`;
         }
 
         sendChatMessage += powerCardStop;        
