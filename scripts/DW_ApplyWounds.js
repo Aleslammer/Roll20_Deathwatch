@@ -1,12 +1,23 @@
 on("ready", function () {
-    var version = '0.1.0';
+    var version = '0.2.0';
 	log("-=> DW_ApplyWounds v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
     if (msg.type=="api" && msg.content.indexOf("!DW_ApplyWounds") == 0)
     {
+        const showLog = false;
+
         var params = {}
         var tarData = {}
+
+        function logMessage(message, override = false)
+        {
+            if (showLog || override)
+            {
+                log(message)
+            }
+        }
+
         function parseArgs(args){
             for(lcv = 1; lcv < args.length; lcv++)
             {
@@ -57,15 +68,15 @@ on("chat:message", function(msg){
             var damage = hit[1];
             var armourValue = tarData[location] - parseInt(params.pen);
             var wounds = damage - (armourValue > 0 ? armourValue : 0) - tarData.TB;
-            log(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}`);
+            logMessage(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}`);
             if (tarData.charType == "HORDE")
             {
-                log("HORDE!")
+                logMessage("HORDE!")
                 return 1;
             }
             else
             {
-                log("Not HORDE!")
+                logMessage("Not HORDE!")
                 return wounds > 0 ? wounds : 0;
             }
         }
@@ -73,10 +84,10 @@ on("chat:message", function(msg){
         // parse all the arguments
         args = msg.content.split("--");
         parseArgs(args);
-        log(params);
+        logMessage(params);
 
         getTargetData();
-        log(tarData);
+        logMessage(tarData);
 
         var hits = params.hits.split(";");
         var message = "";

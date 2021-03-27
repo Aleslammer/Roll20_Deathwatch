@@ -5,7 +5,17 @@ on("ready", function () {
 on("chat:message", function(msg){
     if (msg.type=="api" && msg.content.indexOf("!Psy_Smite") == 0)
     {
+        const showLog = false;
+
         var params = {}
+
+        function logMessage(message, override = false)
+        {
+            if (showLog || override)
+            {
+                log(message)
+            }
+        }
 
         function parseArgs(args){
             for(lcv = 1; lcv < args.length; lcv++)
@@ -136,7 +146,7 @@ on("chat:message", function(msg){
         params["hordeHits"] = params.psyRating;
 
         // output parameters to the log
-        log(params);
+        logMessage(params);
 
         var sendChatMessage ="";
         const powerCardStart = "!power {{";
@@ -191,6 +201,7 @@ on("chat:message", function(msg){
         }
         
         sendChatMessage += powerCardStop;        
+        logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
 });

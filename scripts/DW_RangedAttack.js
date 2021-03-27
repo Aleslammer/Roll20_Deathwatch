@@ -5,7 +5,17 @@ on("ready", function () {
 on("chat:message", function(msg){
     if (msg.type=="api" && msg.content.indexOf("!DW_RangedAttack") == 0)
     {
+        const showLog = false;
+
         var params = {}
+
+        function logMessage(message, override = false)
+        {
+            if (showLog || override)
+            {
+                log(message)
+            }
+        }
 
         function parseArgs(args){
             for(lcv = 1; lcv < args.length; lcv++)
@@ -111,7 +121,7 @@ on("chat:message", function(msg){
             }
             else
             {
-                log("Cannot find weapon for " + params.characterName + " and row id " + params.weaponID);
+                logMessage("Cannot find weapon for " + params.characterName + " and row id " + params.weaponID, true);
             }
         }
 
@@ -129,12 +139,12 @@ on("chat:message", function(msg){
                 }
                 else
                 {
-                    log("Missing Row for " + attrName);
+                    logMessage("Missing Row for " + attrName, true);
                 }
             }
             else
             {
-                log("Missing Row for Ammo Update on " + params.characterName);
+                logMessage("Missing Row for Ammo Update on " + params.characterName, true);
             }
         }
 
@@ -150,7 +160,7 @@ on("chat:message", function(msg){
             {
                 if (isRequired)
                 {
-                    log("Missing Row for " + attrName);
+                    logMessage("Missing Row for " + attrName);
                     return "Unkown";
                 }
                 else
@@ -208,7 +218,7 @@ on("chat:message", function(msg){
         params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
 
         // output parameters to the log
-        log(params);
+        logMessage(params);
 
         var sendChatMessage ="";
         const powerCardStart = "!power {{";
@@ -269,7 +279,7 @@ on("chat:message", function(msg){
         }
         
         sendChatMessage += powerCardStop;
-        // log(sendChatMessage);
+        logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
 });
