@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.1.0';
+    var version = '0.2.0';
 	log("-=> Psy_Smite v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -174,13 +174,21 @@ on("chat:message", function(msg){
             params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
             params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
             sendChatMessage += `\n--vfx_opt|${params.tokenID} ${params.targetID} LightningBolt`
+            var awValue = "";
             for(lcv = 0; lcv < params.hits; lcv++)
             {
                 var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[${params.damageRoll}]]`;
+                sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[ [$Atk${lcv+1}] ${params.damageRoll}]]`;
+                lcv > 0 ? awValue+=";" : null;
+                awValue += `${whereHit}-[^Atk${lcv+1}]`;
+            }
+            
+            // if we hit then add the hits rolls
+            if (params.hits > 0)
+            {
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue}`;
             }
         }
-
         
         sendChatMessage += powerCardStop;        
         sendChat("From", sendChatMessage);
