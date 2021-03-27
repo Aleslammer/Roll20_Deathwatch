@@ -1,11 +1,21 @@
 on("ready", function () {
-    var version = '0.1.0';
+    var version = '0.2.0';
 	log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
     if (msg.type=="api" && msg.content.indexOf("!DW_RangedAttack") == 0)
     {
+        const showLog = false;
+
         var params = {}
+
+        function logMessage(message, override = false)
+        {
+            if (showLog || override)
+            {
+                log(message)
+            }
+        }
 
         function parseArgs(args){
             for(lcv = 1; lcv < args.length; lcv++)
@@ -74,7 +84,7 @@ on("chat:message", function(msg){
                 hitNumber = (hitsequence.length -1);
             }
 
-            return hitsequence[hitNumber];
+            return hitsequence[hitNumber];             
         }
 
         function reverseRoll(roll)
@@ -111,7 +121,7 @@ on("chat:message", function(msg){
             }
             else
             {
-                log("Cannot find weapon for " + params.characterName + " and row id " + params.weaponID);
+                logMessage("Cannot find weapon for " + params.characterName + " and row id " + params.weaponID, true);
             }
         }
 
@@ -129,12 +139,12 @@ on("chat:message", function(msg){
                 }
                 else
                 {
-                    log("Missing Row for " + attrName);
+                    logMessage("Missing Row for " + attrName, true);
                 }
             }
             else
             {
-                log("Missing Row for Ammo Update on " + params.characterName);
+                logMessage("Missing Row for Ammo Update on " + params.characterName, true);
             }
         }
 
@@ -150,7 +160,7 @@ on("chat:message", function(msg){
             {
                 if (isRequired)
                 {
-                    log("Missing Row for " + attrName);
+                    logMessage("Missing Row for " + attrName);
                     return "Unkown";
                 }
                 else
@@ -208,7 +218,7 @@ on("chat:message", function(msg){
         params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
 
         // output parameters to the log
-        log(params);
+        logMessage(params);
 
         var sendChatMessage ="";
         const powerCardStart = "!power {{";
@@ -241,20 +251,35 @@ on("chat:message", function(msg){
             params.miscModifier != 0 ? sendChatMessage += `\n--Misc Modifier:|${params.miscModifier}` : null;
             sendChatMessage += `\n--Shells:|${params.shells}`;
             sendChatMessage += `\n--Hits:|[[${params.hits}${params.rollValue}]]`;
-            params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
-            params.hits > 0 ? sendChatMessage += `\n--Damage Type:|${params.damageType}` : null;
-            params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
-            params.hits > 0 ? sendChatMessage += `\n--vfx_opt|${params.targetID} BloodSplat` : null;
+            if (params.hits > 0 )
+            {
+                params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null;
+                sendChatMessage += `\n--Damage Type:|${params.damageType}`;
+                sendChatMessage += `\n--Penetration:|${params.penetration}`;
+                sendChatMessage += `\n--vfx_opt|${params.targetID} BloodSplat`;
+            }
+            
+            var awValue = "";
             for(lcv = 0; lcv < params.hits; lcv++)
             {
                 var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[${params.damageRoll}]]`;
+                sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[ [$Atk${lcv+1}] ${params.damageRoll}]]`;
+                lcv > 0 ? awValue+=";" : null;
+                awValue += `${whereHit}-[^Atk${lcv+1}]`;
+            }
+            
+            
+            // if we hit then add the hits rolls
+            if (params.hits > 0 )
+            {
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue}`;
             }
 
             reduceAmmo();
         }
         
-        sendChatMessage += powerCardStop;        
+        sendChatMessage += powerCardStop;
+        logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
 });

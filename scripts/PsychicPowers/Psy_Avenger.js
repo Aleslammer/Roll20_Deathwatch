@@ -1,11 +1,21 @@
 on("ready", function () {
-    var version = '0.1.0';
+    var version = '0.2.0';
 	log("-=> Psy_Avenger v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
     if (msg.type=="api" && msg.content.indexOf("!Psy_Avenger") == 0)
     {
+        const showLog = false;
+
         var params = {}
+
+        function logMessage(message, override = false)
+        {
+            if (showLog || override)
+            {
+                log(message)
+            }
+        }
 
         function parseArgs(args){
             for(lcv = 1; lcv < args.length; lcv++)
@@ -137,7 +147,7 @@ on("chat:message", function(msg){
         params["hordeHits"] = params.psyRating;
 
         // output parameters to the log
-        log(params);
+        logMessage(params);
 
         var sendChatMessage ="";
         const powerCardStart = "!power {{";
@@ -175,15 +185,24 @@ on("chat:message", function(msg){
             params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
             params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
             sendChatMessage += `\n--vfx_opt|${params.tokenID} ${params.targetID} beam-fire`
+            var awValue = "";
             for(lcv = 0; lcv < params.hits; lcv++)
             {
                 var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[${params.damageRoll}]]`;
+                sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[ [$Atk${lcv+1}] ${params.damageRoll}]]`;
+                lcv > 0 ? awValue+=";" : null;
+                awValue += `${whereHit}-[^Atk${lcv+1}]`;
+            }
+            
+            // if we hit then add the hits rolls
+            if (params.hits > 0)
+            {
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue}`;
             }
         }
-
         
         sendChatMessage += powerCardStop;        
+        logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
 });
