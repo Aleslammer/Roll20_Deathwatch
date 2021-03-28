@@ -1,11 +1,11 @@
 on("ready", function () {
-    var version = '0.2.0';
+    var version = '0.2.1';
 	log("-=> Psy_Avenger v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
     if (msg.type=="api" && msg.content.indexOf("!Psy_Avenger") == 0)
     {
-        const showLog = false;
+        const showLog = true;
 
         var params = {}
 
@@ -121,6 +121,19 @@ on("chat:message", function(msg){
             params["penetration"] = params.psyRating * 2;
             params["powerRange"] = 30;
             params["weaponSpecial"] = "Flame (p.260) 1d10+4 per round on fire";
+
+            params["tarAgility"] = parseInt(getAttrByName(params.targetCharID, "Agility"));
+            params["tarAgilityAdv"] = parseInt(getAttrByName(params.targetCharID, "advanceAg"));
+
+            params["tarAgRoll"] = (params.tarAgility + params.tarAgilityAdv) - randomInteger(100);
+            params["tarAgilityDos"] = Math.trunc(params.tarAgRoll / 10);
+            
+            var token = findObjs({ type: 'graphic', _id: params.targetID })[0];
+            params["targetName"] = "Something";
+            if (token)
+            {
+                params["targetName"] = token.get("name");
+            }
         }
 
         args = msg.content.split("--");
@@ -184,6 +197,12 @@ on("chat:message", function(msg){
             sendChatMessage += `\n--Hits:|[[${params.hits}]]`;
             params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
             params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
+
+            if (params.tarAgilityDos <= 0)
+            {
+                sendChatMessage += `\n--Target On FIRE!!!`;
+            }
+
             sendChatMessage += `\n--vfx_opt|${params.tokenID} ${params.targetID} beam-fire`
             var awValue = "";
             for(lcv = 0; lcv < params.hits; lcv++)
