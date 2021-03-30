@@ -5,7 +5,7 @@ on("ready", function () {
 on("chat:message", function(msg){
     if (msg.type=="api" && msg.content.indexOf("!DW_MeleeAttack") == 0)
     {
-        const showLog = true;
+        const showLog = false;
 
         var params = {}
 
