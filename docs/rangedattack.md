@@ -8,7 +8,7 @@ Will be prompted for the following:
 * Aim
 * RoF
 * Called Shot
-* Running Target1
+* Running1
 * Misc - Used for any modifier not valid above.
 
 ![ranged](images/ranged.png)
