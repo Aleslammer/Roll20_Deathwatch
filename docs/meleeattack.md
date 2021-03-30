@@ -1,23 +1,38 @@
-# Melee Attack
+# DW_MeleeAttack
 
 [Script](../scripts/DW_MeleeAttack.js)
 
-Will be prompted for the following:
-Requirements
-Input
-Output
-Images
+This is called from the modified character sheet passing values based on the weapon selected.
 
-* All Out Attack
-* Charging
-* Aim
-* Called Shot
-* Running Target
-* Misc - Used for any modifier not valid above.
-* Power Level - The power level to use if chosen for a force weapons.
+## Requirements
 
-![melee](images/melee.png)
-Standard Attack
+    - PowerCards
+    - DW_ApplyWounds
 
-![melee-force](images/melee-force.png)
-ForceAttack
+## Input
+
+This script is intended to be called from the character sheet.
+
+* **Target** - The target of your melee attack.
+* **All Out** - This indicates if the attack is using the all out ability.   Values are Yes or No.
+* **Charging** - Indicates if the attacker is charging his opponent.   Values are Yes or No.
+* **Aim** - The Aim value for this attack.   Values are
+  * None - Represents no aiming is done.
+  * Half - Represents a half action aim.
+  * Full - Represents a full previous action as aim.
+* **Called Shot** - Indicates if the attacker is calling their shot.  Values are Yes or No.
+* **Running** - Indicates if the target is running or not.  Values are Yes or No.
+* **Misc** - Used for any miscellaneous modifier not already used above.
+* **PowerLevel** - The power level to use when attack intends to imbue the weapon with psychic energy.  If the user does not have a psyRating this has no effect.
+
+## Macro
+
+You can setup a token macro as well.   So that when the user selects their token a button fro attack will appear.  This can be done on the "Attributes & Abilities" tab of the character sheet page.   You need to set-up a separate one for each melee weapon.  The key is to change the **weaponID** value to the row ID of the melee weapon you wish to setup a macro for.
+
+```
+!DW_MeleeAttack --characterName|@{character_name} --allOut|?{All Out|No,0|Yes,+20}  --charge|?{Charge|No,0|Yes,+10} --aim|?{Aim|No,+0|Half,+10|Full,+20} --calledShot|?{Called Shot|No,+0|Yes,-20} --runningTarget|?{Running|No,+0|Yes,20} --miscModifier|?{Modifier|0} --characterID|@{character_id} --weaponID|1 --targetID|@{target|token_id} --targetCharID|@{target|character_id} --powerLevel|?{PowerLevel|None,0|Fettered,1|Unfettered,2|Push,3}
+```
+
+### Standard / Force Attack
+
+![Standard Attack](images/melee.png) ![ForceWeapon Attack](images/melee-force.png)
