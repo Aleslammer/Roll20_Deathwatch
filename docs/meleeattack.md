@@ -25,6 +25,22 @@ This script is intended to be called from the character sheet.
 * **Modifier** - Used for any miscellaneous modifier not already used above.
 * **PowerLevel** - The power level to use when attack intends to imbue the weapon with psychic energy.  If the user does not have a psyRating this has no effect.
 
+## Notes
+
+The script does a few things of note.
+
+* Determines where and for how much the attacks hit.
+* Will re-roll the Righteous Fury attack for determining if confirmation.
+  * This does not mean that a Righteous Fury has landed.   The damage is rolled after this script is complete and any RF damage must be rolled.
+* Will send hits and damage to the [DW_ApplyWounds](applywounds.md) api script.
+* When using as a force weapon will roll the opposed Will checks for determining force hits and damage.
+* You can enable logging of all sorts of API data by changing the value of the log constant.
+
+
+    ```javascript
+    const showLog = false;
+    ```
+
 ## Macro
 
 You can setup a token macro as well.   So that when the user selects their token a button for attack will appear.  This can be done on the "Attributes & Abilities" tab of the character sheet page.   You need to set-up a separate one for each melee weapon.  The key is to change the **weaponID** value to the row ID of the melee weapon you wish to setup a macro for.
