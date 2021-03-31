@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.0';
+    var version = '0.2.1';
 	log("-=> Psy_Smite v" + version + " Loaded ");
 });
 on("chat:message", function(msg){

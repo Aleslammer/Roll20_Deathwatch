@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.1';
+    var version = '0.2.2';
 	log("-=> Psy_Avenger v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
