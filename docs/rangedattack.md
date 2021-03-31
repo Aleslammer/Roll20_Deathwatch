@@ -38,6 +38,7 @@ The script does a few things of note.
 
 * Determines if the weapon has jammed.
 * Determines if the character has enough ammo to fire the round.
+* Will automatically reduce the ammo for the weapon.
 * Determines where and for how much the attacks hit.
 * Will re-roll the Righteous Fury attack for determining if confirmation.
   * This does not mean that a Righteous Fury has landed.   The damage is rolled after this script is complete and any RF damage must be rolled.
