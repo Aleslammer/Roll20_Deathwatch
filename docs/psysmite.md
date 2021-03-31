@@ -4,6 +4,19 @@ This is intended to be used as a extra ability attached to the character sheet u
 
 [Psy_Smite](../scripts/PsychicPowers/Psy_Smite.js)
 
+## Requirements
+
+    - PowerCards
+    - DW_ApplyWounds
+
+## Notes
+
+* You can enable logging of all sorts of API data by changing the value of the log constant.
+
+    ```javascript
+    const showLog = false;
+    ```
+
 ## Macro
 
 ```
