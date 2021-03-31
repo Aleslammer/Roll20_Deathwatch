@@ -35,7 +35,6 @@ on("chat:message", function(msg){
             params.calledShot = parseInt(params.calledShot);
             params.runningTarget = parseInt(params.runningTarget);
             params.miscModifier = parseInt(params.miscModifier);
-            params.strengthBonus = parseInt(params.strengthBonus);
             params.powerLevel = parseInt(params.powerLevel);
         }
 
@@ -58,35 +57,35 @@ on("chat:message", function(msg){
             var hitSequence;
             if (roll >= 1 && roll <=10)
             {
-                hitsequence = hitArray[0];
+                hitSequence = hitArray[0];
             }
             else if (roll >= 11 && roll <=20)
             {
-                hitsequence = hitArray[1];
+                hitSequence = hitArray[1];
             }
             else if (roll >= 21 && roll <=30)
             {
-                hitsequence = hitArray[2];
+                hitSequence = hitArray[2];
             }
             else if (roll >= 31 && roll <= 70)
             {
-                hitsequence = hitArray[3];
+                hitSequence = hitArray[3];
             }
             else if(roll >= 71 && roll <= 85)
             {
-                hitsequence = hitArray[4];
+                hitSequence = hitArray[4];
             }
             else if(roll >= 86 && roll <= 100)
             {
-                hitsequence = hitArray[5];
+                hitSequence = hitArray[5];
             }
             
-            if (hitNumber >= (hitsequence.length -1))
+            if (hitNumber >= (hitSequence.length -1))
             {
-                hitNumber = (hitsequence.length -1);
+                hitNumber = (hitSequence.length -1);
             }
 
-            return hitsequence[hitNumber];
+            return hitSequence[hitNumber];
         }
 
         function reverseRoll(roll)
@@ -111,7 +110,7 @@ on("chat:message", function(msg){
             }
         }
 
-        function getWeaponValue(name, isRequired)
+        function getWeaponValue(name, defaultValue)
         {
             var attrName = "repeating_meleeweapons_"+params.weaponRowID+"_"+name;
             var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
@@ -121,15 +120,8 @@ on("chat:message", function(msg){
             }
             else
             {
-                if (isRequired)
-                {
-                    logMessage("Missing Row for " + attrName, true);
-                    return "Unkown";
-                }
-                else
-                {
-                    return "";
-                }
+                logMessage("Missing Row for " + attrName + " Using default of " + defaultValue);
+                return defaultValue;
             }
         }
 
@@ -137,11 +129,20 @@ on("chat:message", function(msg){
         {
             params["weaponSkill"] = parseInt(getAttrByName(params.characterID, "WeaponSkill"));
             params["weaponSkillAdv"] = parseInt(getAttrByName(params.characterID, "advanceWS"));
-            params["weaponName"] = getWeaponValue("meleeweaponname", true);
-            params["weaponSpecial"] = getWeaponValue("meleeweaponspecial");
-            params["penetration"] = parseInt(getWeaponValue("meleeweaponpen", true));
-            params["damageType"] = getWeaponValue("meleeweapontype", true);
-            params["damageRoll"] = getWeaponValue("meleeweapondamage", true);
+
+            params["strength"] = parseInt(getAttrByName(params.characterID, "Strength"));
+
+            params["weaponName"] = getWeaponValue("meleeweaponname", "Unknown");
+            params["weaponSpecial"] = getWeaponValue("meleeweaponspecial", "");
+            params["penetration"] = parseInt(getWeaponValue("meleeweaponpen", 0));
+            params["damageType"] = getWeaponValue("meleeweapontype", "Melee");
+            params["damageRoll"] = getWeaponValue("meleeweapondamage", "0d0");
+            
+            params["unnaturalStrBonus"] =  getAttrByName(params.characterID, "unnatural-Strength");
+            params["paStrBonus"] = parseInt(getWeaponValue("powerarmourSB", 2));
+            params["useSB"] = parseInt(getWeaponValue("useSB", 1));
+            params["strengthBonus"] = ((Math.floor(params.strength/10) * params.unnaturalStrBonus) + params.paStrBonus) * params.useSB;
+
             if (params.powerLevel > 0)
             {
                 params["psyRating"] = parseInt(getAttrByName(params.characterID, "PsyRating"));
