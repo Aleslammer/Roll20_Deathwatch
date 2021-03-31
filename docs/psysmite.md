@@ -22,3 +22,6 @@ This is intended to be used as a extra ability attached to the character sheet u
 ```
 !Psy_Smite --characterName|@{character_name} --powerLevel|?{Power Level|Fettered|Unfettered|Push} --range|?{Range|Point Blank,+20|Short,+10|Medium,+0|Long,-10|Extreme,-20} --aim|?{Aim|No,+0|Half,+10|Full,+20} --calledShot|?{Called Shot|No,+0|Yes,-20} --runningTarget|?{Running|No,+0|Yes,-20} --miscModifier|?{Modifier|0} --characterID|@{character_id} --targetID|@{target|Smite Target|token_id} --tokenID|@{selected|token_id}
 ```
+
+## Example 
+![Avenger](./images/Smite.png)
