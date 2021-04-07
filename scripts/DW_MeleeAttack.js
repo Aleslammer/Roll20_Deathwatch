@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.1';
+    var version = '0.2.3';
 	log("-=> DW_MeleeAttack v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -245,7 +245,7 @@ on("chat:message", function(msg){
             if (params.powerLevel > 0)
             {
                 sendChatMessage += `\n--Willpower Test:|Yours [[${params.willDos} [${params.willRollMod}]]] vs ${params.targetName}[[${params.tarWillDos} [${params.tarWillRoll}]]]`;
-                params.forceDamage ? sendChatMessage += `\n--Force Damage:|[[${params.forceDamage}]]` : null;
+                params.forceDamage ? sendChatMessage += `\n--Force Damage:|[[ [$FD] ${params.forceDamage}]]` : null;
                 if ((((params.willRoll % 11) == 0) && params.powerLevel == 2) || (params.powerLevel == 3))
                 {
                     sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
@@ -266,7 +266,14 @@ on("chat:message", function(msg){
         // if we hit then add the hits rolls
         if (params.hits > 0)
         {
-            sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue}`;
+            if (params.forceDamage)
+            {
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[^FD]`;
+            }
+            else
+            {
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 `;
+            }
         }
 
         sendChatMessage += powerCardStop;

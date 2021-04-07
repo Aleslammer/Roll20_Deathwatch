@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.1';
+    var version = '0.2.3';
 	log("-=> Psy_Smite v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -196,7 +196,7 @@ on("chat:message", function(msg){
             // if we hit then add the hits rolls
             if (params.hits > 0)
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue}`;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1`;
             }
         }
         

@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.1';
+    var version = '0.2.2';
 	log("-=> DW_ApplyWounds v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -67,8 +67,10 @@ on("chat:message", function(msg){
             var location = hit[0];
             var damage = hit[1];
             var armourValue = tarData[location] - parseInt(params.pen);
-            var wounds = damage - (armourValue > 0 ? armourValue : 0) - tarData.TB;
-            logMessage(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}`);
+            armourValue = armourValue > 0 ? armourValue : 0;
+            var wounds = damage - armourValue - tarData.TB;
+            wounds = wounds > 0 ? wounds : 0;
+            logMessage(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}, Wounds${wounds}`);
             if (tarData.charType == "HORDE")
             {
                 logMessage("HORDE!")
@@ -77,7 +79,7 @@ on("chat:message", function(msg){
             else
             {
                 logMessage("Not HORDE!")
-                return wounds > 0 ? wounds : 0;
+                return wounds;
             }
         }
 
@@ -93,9 +95,15 @@ on("chat:message", function(msg){
         var message = "";
         var woundTotal = 0;
         hits.forEach(hit => woundTotal += determineWounds(hit.split("-")));
+        if (params.forceDam)
+        {
+            logMessage(`Found force damage ${params.forceDam}`);
+            woundTotal += parseInt(params.forceDam);
+        }
+
         if (params.alterBar)
         {
-            message = `\n!alter --target|${params.tarTokenID} --bar|1 --amount|-${woundTotal} --show|gm`
+            sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
         }
         else
         {

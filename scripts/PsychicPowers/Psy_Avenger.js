@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.2';
+    var version = '0.2.4';
 	log("-=> Psy_Avenger v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -216,7 +216,7 @@ on("chat:message", function(msg){
             // if we hit then add the hits rolls
             if (params.hits > 0)
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue}`;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1`;
             }
         }
         

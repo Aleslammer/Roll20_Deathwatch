@@ -40,8 +40,8 @@ AlterScript.Process = function (msg) {
 	// Example: Paladin heals 1 hit point.
 	// Example: Paladin heals 8 hit points.
 	// Example: Mage spends 3 mana.
-	var Bar1Gain = ["heals", "hit point", "hit points"];
-	var Bar1Loss = ["takes", "damage", "damage"];
+	var Bar1Gain = ["takes", "wound", "wounds"];
+	var Bar1Loss = ["heals", "wound", "wounds"];
 	var Bar2Gain = ["recovers", "mana", "mana"]
 	var Bar2Loss = ["spends", "mana", "mana"]
 	var Bar3Gain = ["heals", "hit point", "hit points"];
@@ -137,13 +137,14 @@ AlterScript.Process = function (msg) {
 	sendChat("", "/r " + AlterValue, function (outs) {
 		AlterValue = parseInt(JSON.parse(outs[0].content).total);
 		var Tooltip = "Rolling " + Expression + " = " + AlterValue + "' class='a inlinerollresult showtip tipsy-n'";
-		var TargetName = (Target.get("name") == "" || Target.get("showplayers_name") == false && !ALERT_GM) ? "NPC" : Target.get("name");
+		// var TargetName = (Target.get("name") == "" || Target.get("showplayers_name") == false && !ALERT_GM) ? "NPC" : Target.get("name");
+		var TargetName = Target.get("name");
 		if (Operand1 != "-") {
 			// Add to bar...
 			if (PREVENT_OVERMAX) AlterValue = (AlterValue + CurrentValue > MaxValue) ? MaxValue - CurrentValue : AlterValue;
 			var AlertGain = "" +
                 "<div style='display: block; margin-left: -7px; margin-right: 2px; padding: 2px 0px;'>" +
-                    "<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#004400") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
+                    "<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#c70000") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
                         "<div style='position: absolute; top: -10px; left: 5px; height: 40px; width: 40px;'>" + 
                             "<img src='" + Target.get("imgsrc") + "' style='height: 40px; width: 40px;'></img>" + 
                         "</div>" +
@@ -153,13 +154,13 @@ AlterScript.Process = function (msg) {
                     "</div>" +
                 "</div>";
 			if (ANNOUNCE_CHANGE) sendChat("", "/desc " + AlertGain);
-			if (ALERT_GM) sendChat(who, "/w GM " + AlertGain);
+			if (ALERT_GM) sendChat(TargetName, "/w GM " + AlertGain);
 			Target.set("bar" + Bar + "_value", CurrentValue += AlterValue);
 		} else {
 			// Subtract from bar...
 			var AlertLoss = "" +
                 "<div style='display: block; margin-left: -7px; margin-right: 2px; padding: 2px 0px;'>" +
-                    "<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#440000") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
+                    "<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#004400") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
                         "<div style='position: absolute; top: -10px; left: 5px; height: 40px; width: 40px;'>" + 
                             "<img src='" + Target.get("imgsrc") + "' style='height: 40px; width: 40px;'></img>" + 
                         "</div>" +
@@ -169,7 +170,7 @@ AlterScript.Process = function (msg) {
                     "</div>" +
                 "</div>";
 			if (ANNOUNCE_CHANGE) sendChat("", "/desc " + AlertLoss);
-			if (ALERT_GM) sendChat(who, "/w GM " + AlertLoss);
+			if (ALERT_GM) sendChat(TargetName, "/w GM " + AlertLoss);
 			if (STOP_AT_ZERO && (CurrentValue - AlterValue < 0)) AlterValue = CurrentValue;
 			Target.set("bar" + Bar + "_value", CurrentValue -= AlterValue);
 		}
