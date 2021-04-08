@@ -185,36 +185,35 @@ on("chat:message", function(msg){
             if (token)
             {
                 params["targetName"] = token.get("name");
-            }
-
-            params["tarType"] = "NPC";
-            var value = findObjs({type: 'attribute', characterid: params.targetCharID, name: "charType"})[0];
-            if (value)
-            {
-                params["tarType"] = value.get('current').toUpperCase();
-                if (params.tarType == "HORDE")
+                params["tarType"] = "NPC";
+                var value = findObjs({type: 'attribute', characterid: params.targetCharID, name: "charType"})[0];
+                if (value)
                 {
-                    params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
-                    params["magBonus"] = 0;
-                    if (params.tarMag >= 120)
+                    params["tarType"] = value.get('current').toUpperCase();
+                    if (params.tarType == "HORDE")
                     {
-                        params.magBonus = 60;
+                        params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
+                        params["magBonus"] = 0;
+                        if (params.tarMag >= 120)
+                        {
+                            params.magBonus = 60;
+                        }
+                        else if (params.tarMag >= 90)
+                        {
+                            params.magBonus = 50;
+                        }
+                        else if (params.tarMag >= 60)
+                        {
+                            params.magBonus = 40;
+                        }
+                        else if (params.tarMag >= 30)
+                        {
+                            params.magBonus = 30;
+                        }          
                     }
-                    else if (params.tarMag >= 90)
-                    {
-                        params.magBonus = 50;
-                    }
-                    else if (params.tarMag >= 60)
-                    {
-                        params.magBonus = 40;
-                    }
-                    else if (params.tarMag >= 30)
-                    {
-                        params.magBonus = 30;
-                    }          
                 }
             }
-        }
+      }
 
         args = msg.content.split("--");
 
