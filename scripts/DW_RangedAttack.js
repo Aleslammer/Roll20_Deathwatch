@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.3';
+    var version = '0.2.4';
 	log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -56,35 +56,35 @@ on("chat:message", function(msg){
             var hitSequence;
             if (roll >= 1 && roll <=10)
             {
-                hitsequence = hitArray[0];
+                hitSequence = hitArray[0];
             }
             else if (roll >= 11 && roll <=20)
             {
-                hitsequence = hitArray[1];
+                hitSequence = hitArray[1];
             }
             else if (roll >= 21 && roll <=30)
             {
-                hitsequence = hitArray[2];
+                hitSequence = hitArray[2];
             }
             else if (roll >= 31 && roll <= 70)
             {
-                hitsequence = hitArray[3];
+                hitSequence = hitArray[3];
             }
             else if(roll >= 71 && roll <= 85)
             {
-                hitsequence = hitArray[4];
+                hitSequence = hitArray[4];
             }
             else if(roll >= 86 && roll <= 100)
             {
-                hitsequence = hitArray[5];
+                hitSequence = hitArray[5];
             }
             
-            if (hitNumber >= (hitsequence.length -1))
+            if (hitNumber >= (hitSequence.length -1))
             {
-                hitNumber = (hitsequence.length -1);
+                hitNumber = (hitSequence.length -1);
             }
 
-            return hitsequence[hitNumber];             
+            return hitSequence[hitNumber];             
         }
 
         function reverseRoll(roll)
@@ -161,7 +161,7 @@ on("chat:message", function(msg){
                 if (isRequired)
                 {
                     logMessage("Missing Row for " + attrName);
-                    return "Unkown";
+                    return "Unknown";
                 }
                 else
                 {
@@ -186,6 +186,34 @@ on("chat:message", function(msg){
             {
                 params["targetName"] = token.get("name");
             }
+
+            params["tarType"] = "NPC";
+            var value = findObjs({type: 'attribute', characterid: params.targetCharID, name: "charType"})[0];
+            if (value)
+            {
+                params["tarType"] = value.get('current').toUpperCase();
+                if (params.tarType == "HORDE")
+                {
+                    params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
+                    params["magBonus"] = 0;
+                    if (params.tarMag >= 120)
+                    {
+                        params.magBonus = 60;
+                    }
+                    else if (params.tarMag >= 90)
+                    {
+                        params.magBonus = 50;
+                    }
+                    else if (params.tarMag >= 60)
+                    {
+                        params.magBonus = 40;
+                    }
+                    else if (params.tarMag >= 30)
+                    {
+                        params.magBonus = 30;
+                    }          
+                }
+            }
         }
 
         args = msg.content.split("--");
@@ -205,7 +233,7 @@ on("chat:message", function(msg){
         // Now determine the rof values.
         determineRof();
       
-        params["fullModifier"] = params.ballisticSkill + params.ballisticSkillAdv + params.range + params.aim + params.autoFire + params.calledShot + params.runningTarget + params.miscModifier;
+        params["fullModifier"] = params.ballisticSkill + params.ballisticSkillAdv + params.range + params.aim + params.autoFire + params.calledShot + params.runningTarget + params.miscModifier + params.magBonus;
         
         // Determine the Jam target.   When autofire jams are more frequent
         params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
@@ -249,6 +277,7 @@ on("chat:message", function(msg){
             params.calledShot != 0 ? sendChatMessage += `\n--Called Shot Modifier:|${params.calledShot}` : null;
             params.runningTarget != 0 ? sendChatMessage += `\n--Running Target Modifier:|${params.runningTarget}` : null;
             params.miscModifier != 0 ? sendChatMessage += `\n--Misc Modifier:|${params.miscModifier}` : null;
+            params.magBonus != 0 ? sendChatMessage += `\n--Horde Size Modifier:|${params.magBonus}` : null;
             sendChatMessage += `\n--Shells:|${params.shells}`;
             sendChatMessage += `\n--Hits:|[[${params.hits}${params.rollValue}]]`;
             if (params.hits > 0 )
