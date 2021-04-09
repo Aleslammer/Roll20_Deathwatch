@@ -168,6 +168,32 @@ on("chat:message", function(msg){
             if (token)
             {
                 params["targetName"] = token.get("name");
+                var value = findObjs({type: 'attribute', characterid: params.targetCharID, name: "charType"})[0];
+                if (value)
+                {
+                    params["tarType"] = value.get('current').toUpperCase();
+                    if (params.tarType == "HORDE")
+                    {
+                        params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
+                        params["magBonus"] = 0;
+                        if (params.tarMag >= 120)
+                        {
+                            params.magBonus = 60;
+                        }
+                        else if (params.tarMag >= 90)
+                        {
+                            params.magBonus = 50;
+                        }
+                        else if (params.tarMag >= 60)
+                        {
+                            params.magBonus = 40;
+                        }
+                        else if (params.tarMag >= 30)
+                        {
+                            params.magBonus = 30;
+                        }          
+                    }
+                }
             }
 
             if (params.powerLevel > 0)
@@ -192,7 +218,7 @@ on("chat:message", function(msg){
         // read values off the character sheet
         readCharacterSheet();
         
-        params["fullModifier"] = params.weaponSkill + params.weaponSkillAdv + params.aim + params.allOut + params.calledShot + params.charge + params.runningTarget + params.miscModifier;
+        params["fullModifier"] = params.weaponSkill + params.weaponSkillAdv + params.aim + params.allOut + params.calledShot + params.charge + params.runningTarget + params.miscModifier + params.magBonus;
        
         // Determine hits and RF roll.
         params["hitRoll"] = randomInteger(100);
@@ -234,6 +260,7 @@ on("chat:message", function(msg){
         params.charge != 0 ? sendChatMessage += `\n--Charge Modifier:|${params.charge}` : null;
         params.runningTarget != 0 ? sendChatMessage += `\n--Running Target Modifier:|${params.runningTarget}` : null;
         params.miscModifier != 0 ? sendChatMessage += `\n--Misc Modifier:|${params.miscModifier}` : null;
+        params.magBonus != 0 ? sendChatMessage += `\n--Horde Size Modifier:|${params.magBonus}` : null;
         sendChatMessage += `\n--Hits:|[[${params.hits} ${params.rollValue}]]`;
         sendChatMessage += `\n--Horde Hits:|[[${params.hordeHits}]]`;
         if (params.hits > 0)
