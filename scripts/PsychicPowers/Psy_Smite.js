@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.3';
+    var version = '0.2.4';
 	log("-=> Psy_Smite v" + version + " Loaded ");
 });
 on("chat:message", function(msg){
@@ -55,35 +55,35 @@ on("chat:message", function(msg){
             var hitSequence;
             if (roll >= 1 && roll <=10)
             {
-                hitsequence = hitArray[0];
+                hitSequence = hitArray[0];
             }
             else if (roll >= 11 && roll <=20)
             {
-                hitsequence = hitArray[1];
+                hitSequence = hitArray[1];
             }
             else if (roll >= 21 && roll <=30)
             {
-                hitsequence = hitArray[2];
+                hitSequence = hitArray[2];
             }
             else if (roll >= 31 && roll <= 70)
             {
-                hitsequence = hitArray[3];
+                hitSequence = hitArray[3];
             }
             else if(roll >= 71 && roll <= 85)
             {
-                hitsequence = hitArray[4];
+                hitSequence = hitArray[4];
             }
             else if(roll >= 86 && roll <= 100)
             {
-                hitsequence = hitArray[5];
+                hitSequence = hitArray[5];
             }
             
-            if (hitNumber >= (hitsequence.length -1))
+            if (hitNumber >= (hitSequence.length -1))
             {
-                hitNumber = (hitsequence.length -1);
+                hitNumber = (hitSequence.length -1);
             }
 
-            return hitsequence[hitNumber];
+            return hitSequence[hitNumber];
         }
 
         function reverseRoll(roll)
@@ -110,6 +110,7 @@ on("chat:message", function(msg){
 
         function readCharacterSheet()
         {
+            params["magBonus"] = 0;
             params.psyRating = parseInt(getAttrByName(params.characterID, "PsyRating"));            
             // need to determine this now as it effects other values.
             determinePsyRating();
@@ -133,7 +134,6 @@ on("chat:message", function(msg){
                     if (params.tarType == "HORDE")
                     {
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
-                        params["magBonus"] = 0;
                         if (params.tarMag >= 120)
                         {
                             params.magBonus = 60;

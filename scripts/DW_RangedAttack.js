@@ -172,6 +172,7 @@ on("chat:message", function(msg){
 
         function readCharacterSheet()
         {
+            params["magBonus"] = 0;
             params["ballisticSkill"] = parseInt(getAttrByName(params.characterID, "BallisticSkill"));
             params["ballisticSkillAdv"] = parseInt(getAttrByName(params.characterID, "advanceBS"));
             params["weaponName"] = getWeaponValue("rangedweaponname", true);
@@ -193,7 +194,6 @@ on("chat:message", function(msg){
                     if (params.tarType == "HORDE")
                     {
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
-                        params["magBonus"] = 0;
                         if (params.tarMag >= 120)
                         {
                             params.magBonus = 60;

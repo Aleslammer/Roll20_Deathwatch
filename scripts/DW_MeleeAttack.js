@@ -127,6 +127,7 @@ on("chat:message", function(msg){
 
         function readCharacterSheet()
         {
+            params["magBonus"] = 0;
             params["weaponSkill"] = parseInt(getAttrByName(params.characterID, "WeaponSkill"));
             params["weaponSkillAdv"] = parseInt(getAttrByName(params.characterID, "advanceWS"));
 
@@ -175,7 +176,6 @@ on("chat:message", function(msg){
                     if (params.tarType == "HORDE")
                     {
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
-                        params["magBonus"] = 0;
                         if (params.tarMag >= 120)
                         {
                             params.magBonus = 60;
@@ -295,11 +295,11 @@ on("chat:message", function(msg){
         {
             if (params.forceDamage)
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[^FD]`;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[^FD] _hordeHits|${params.hordeHits}`;
             }
             else
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 `;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits}`;
             }
         }
 
