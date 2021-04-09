@@ -117,9 +117,42 @@ on("chat:message", function(msg){
             params["willpowerAdv"] = parseInt(getAttrByName(params.characterID, "advanceWP"));
 
             params["damageRoll"] = `1d10 * ${params.psyRating}`;
-            params["datamageType"] = "Energy";
+            params["damageType"] = "Energy";
             params["penetration"] = params.psyRating;
             params["powerRange"] = params.psyRating * 10;
+
+            var token = findObjs({ type: 'graphic', _id: params.targetID })[0];
+            params["targetName"] = "Something";
+            if (token)
+            {
+                params["targetName"] = token.get("name");
+                var value = findObjs({type: 'attribute', characterid: params.targetCharID, name: "charType"})[0];
+                if (value)
+                {
+                    params["tarType"] = value.get('current').toUpperCase();
+                    if (params.tarType == "HORDE")
+                    {
+                        params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
+                        params["magBonus"] = 0;
+                        if (params.tarMag >= 120)
+                        {
+                            params.magBonus = 60;
+                        }
+                        else if (params.tarMag >= 90)
+                        {
+                            params.magBonus = 50;
+                        }
+                        else if (params.tarMag >= 60)
+                        {
+                            params.magBonus = 40;
+                        }
+                        else if (params.tarMag >= 30)
+                        {
+                            params.magBonus = 30;
+                        }          
+                    }
+                }
+            }
         }
 
         args = msg.content.split("--");
@@ -133,7 +166,7 @@ on("chat:message", function(msg){
         // read values off the character sheet
         readCharacterSheet();
         
-        params["fullModifier"] = params.willpower + params.willpowerAdv + params.range + params.aim + params.calledShot + params.runningTarget + params.miscModifier + (5 * params.psyRating);
+        params["fullModifier"] = params.willpower + params.willpowerAdv + params.range + params.aim + params.calledShot + params.runningTarget + params.miscModifier + (5 * params.psyRating) + params.magBonus;
         
         // Determine the Jam target.
         params["jamTarget"] = 91;
@@ -153,7 +186,7 @@ on("chat:message", function(msg){
         const powerCardStop = "\n}}";
 
         sendChatMessage += powerCardStart;
-        sendChatMessage += `\n--name|${params.characterName} summons the warp to smite his enemies!`;
+        sendChatMessage += `\n--name|${params.characterName} summons the warp to smite ${params.targetName}!`;
         sendChatMessage += `\n--leftsub|Range ${params.powerRange}`;
         sendChatMessage += `\n--rightsub|PsyRating ${params.psyRating}`;
         if (params.hitRoll > params.jamTarget)
@@ -179,7 +212,9 @@ on("chat:message", function(msg){
             params.calledShot != 0 ? sendChatMessage += `\n--Called Shot Modifier:|${params.calledShot}` : null;
             params.runningTarget != 0 ? sendChatMessage += `\n--Running Target Modifier:|${params.runningTarget}` : null;
             params.miscModifier != 0 ? sendChatMessage += `\n--Misc Modifier:|${params.miscModifier}` : null;
+            params.magBonus != 0 ? sendChatMessage += `\n--Horde Size Modifier:|${params.magBonus}` : null;
             sendChatMessage += `\n--Hits:|[[${params.hits}]]`;
+            params.hits > 0 ? sendChatMessage += `\n--Damage Type:|${params.damageType}` : null;
             params.hits > 0 ? sendChatMessage += `\n--Horde Hits:|[[${params.hordeHits}]]` : null;
             params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
             params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
