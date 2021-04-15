@@ -57,6 +57,12 @@ You can setup a token macro as well.   So that when the user selects their token
 !DW_RangedAttack --characterName|@{character_name} --range|?{Range|Point Blank,+20|Short,+10|Medium,+0|Long,-10|Extreme,-20} --aim|?{Aim|No,+0|Half,+10|Full,+20} --autoFire|?{RoF|Single,0|Semi,10|Full,20} --calledShot|?{Called Shot|No,+0|Yes,-20} --runningTarget|?{Running|No,+0|Yes,-20} --miscModifier|?{Modifier|0} --characterID|@{character_id} --weaponID|0 --targetID|@{target|Ranged|token_id} --targetCharID|@{target|Ranged|character_id}
 ```
 
+For some scenarios it is needed to add the character token ID to the call.   This is only needed at this point for adding horde magnitude bonus to damage.   So this is only beneficial for charType of horde.  Further this only works when added as an ability macro and as a token action.
+
+```
+ --charTokenID|@{selected|token_id}
+```
+
 ### Example Attack
 
 ![ranged](images/ranged.png)

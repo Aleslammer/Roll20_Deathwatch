@@ -111,6 +111,8 @@ on("chat:message", function(msg){
         function readCharacterSheet()
         {
             params["magBonus"] = 0;
+            params["hordeHits"] = 0;
+
             params.psyRating = parseInt(getAttrByName(params.characterID, "PsyRating"));            
             // need to determine this now as it effects other values.
             determinePsyRating();
@@ -133,6 +135,8 @@ on("chat:message", function(msg){
                     params["tarType"] = value.get('current').toUpperCase();
                     if (params.tarType == "HORDE")
                     {
+                        params["hordeHits"] = params.psyRating;
+
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
                         if (params.tarMag >= 120)
                         {
@@ -176,8 +180,7 @@ on("chat:message", function(msg){
         params["rfRoll"] = randomInteger(100);
         params["hitsTotal"] = Math.floor((params.fullModifier - params.hitRoll) / 10);
         params["hits"] = params.hitsTotal > 0 ? 1 : 0;
-        params["hordeHits"] = params.psyRating;
-
+    
         // output parameters to the log
         logMessage(params);
 
@@ -215,7 +218,7 @@ on("chat:message", function(msg){
             params.magBonus != 0 ? sendChatMessage += `\n--Horde Size Modifier:|${params.magBonus}` : null;
             sendChatMessage += `\n--Hits:|[[${params.hits}]]`;
             params.hits > 0 ? sendChatMessage += `\n--Damage Type:|${params.damageType}` : null;
-            params.hits > 0 ? sendChatMessage += `\n--Horde Hits:|[[${params.hordeHits}]]` : null;
+            params.hordeHits > 0 ? sendChatMessage += `\n--Horde Hits:|[[${params.hordeHits}]]` : null;
             params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
             params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
             sendChatMessage += `\n--vfx_opt|${params.tokenID} ${params.targetID} LightningBolt`
@@ -231,7 +234,7 @@ on("chat:message", function(msg){
             // if we hit then add the hits rolls
             if (params.hits > 0)
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1`;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits}`;
             }
         }
         
