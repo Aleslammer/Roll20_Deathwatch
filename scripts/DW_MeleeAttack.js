@@ -143,8 +143,13 @@ on("chat:message", function(msg){
             params["paStrBonus"] = parseInt(getWeaponValue("powerarmourSB", 2));
             params["useSB"] = parseInt(getWeaponValue("useSB", 1));
             params["strengthBonus"] = ((Math.floor(params.strength/10) * params.unnaturalStrBonus) + params.paStrBonus) * params.useSB;
-            params["charType"] = getAttrByName(params.characterID, "charType").toUpperCase();
-
+            params["charType"] = "NPC";
+            var value = findObjs({type: 'attribute', characterid: params.characterID, name: "charType"})[0];
+            if (value)
+            {
+                params["charType"] = value.get('current').toUpperCase();
+            }
+           
             if (params.powerLevel > 0)
             {
                 params["psyRating"] = parseInt(getAttrByName(params.characterID, "PsyRating"));
@@ -327,4 +332,3 @@ on("chat:message", function(msg){
         sendChat("From", sendChatMessage);
     }
 });
-

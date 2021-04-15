@@ -181,7 +181,12 @@ on("chat:message", function(msg){
             params["damageType"] = getWeaponValue("rangedweapontype", true);
             params["currentClip"] = parseInt(getWeaponValue("rangedweaponclip", true));
             params["penetration"] = parseInt(getWeaponValue("rangedweaponpen", true));
-            params["charType"] = getAttrByName(params.characterID, "charType").toUpperCase();
+            params["charType"] = "NPC";
+            var value = findObjs({type: 'attribute', characterid: params.characterID, name: "charType"})[0];
+            if (value)
+            {
+                params["charType"] = value.get('current').toUpperCase();
+            }
 
             var token = findObjs({ type: 'graphic', _id: params.targetID })[0];
             params["targetName"] = "Something";
