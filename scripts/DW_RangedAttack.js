@@ -181,6 +181,8 @@ on("chat:message", function(msg){
             params["damageType"] = getWeaponValue("rangedweapontype", true);
             params["currentClip"] = parseInt(getWeaponValue("rangedweaponclip", true));
             params["penetration"] = parseInt(getWeaponValue("rangedweaponpen", true));
+            params["charType"] = getAttrByName(params.characterID, "charType").toUpperCase();
+
             var token = findObjs({ type: 'graphic', _id: params.targetID })[0];
             params["targetName"] = "Something";
             if (token)
@@ -213,7 +215,19 @@ on("chat:message", function(msg){
                     }
                 }
             }
-      }
+        }
+
+        function findHordeDamageBonus()
+        {
+            logMessage("Finding Horde Damage Bonus" + params.charTokenID);
+            var token = findObjs({ type: 'graphic', _id: params.charTokenID })[0];
+            if (token)
+            {
+                var charMag = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
+                params["hordeBonus"] = Math.trunc(charMag / 10) + "d10";
+                params.damageRoll = params.damageRoll + " + " + params.hordeBonus;
+            }
+        }
 
         args = msg.content.split("--");
 
@@ -231,6 +245,12 @@ on("chat:message", function(msg){
   
         // Now determine the rof values.
         determineRof();
+
+        if (params.charType == "HORDE")
+        {
+            // character is a horde find out any bonus to damage
+            findHordeDamageBonus();
+        }
       
         params["fullModifier"] = params.ballisticSkill + params.ballisticSkillAdv + params.range + params.aim + params.autoFire + params.calledShot + params.runningTarget + params.miscModifier + params.magBonus;
         

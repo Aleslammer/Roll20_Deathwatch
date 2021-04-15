@@ -143,6 +143,7 @@ on("chat:message", function(msg){
             params["paStrBonus"] = parseInt(getWeaponValue("powerarmourSB", 2));
             params["useSB"] = parseInt(getWeaponValue("useSB", 1));
             params["strengthBonus"] = ((Math.floor(params.strength/10) * params.unnaturalStrBonus) + params.paStrBonus) * params.useSB;
+            params["charType"] = getAttrByName(params.characterID, "charType").toUpperCase();
 
             if (params.powerLevel > 0)
             {
@@ -204,6 +205,18 @@ on("chat:message", function(msg){
 
         }
 
+        function findHordeDamageBonus()
+        {
+            logMessage("Finding Horde Damage Bonus" + params.charTokenID);
+            var token = findObjs({ type: 'graphic', _id: params.charTokenID })[0];
+            if (token)
+            {
+                var charMag = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
+                params["hordeBonus"] = Math.trunc(charMag / 10) + "d10";
+                params.damageRoll = params.damageRoll + " + " + params.hordeBonus;
+            }
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -217,7 +230,13 @@ on("chat:message", function(msg){
 
         // read values off the character sheet
         readCharacterSheet();
-        
+       
+        if (params.charType == "HORDE")
+        {
+            // character is a horde find out any bonus to damage
+            findHordeDamageBonus();
+        }
+ 
         params["fullModifier"] = params.weaponSkill + params.weaponSkillAdv + params.aim + params.allOut + params.calledShot + params.charge + params.runningTarget + params.miscModifier + params.magBonus;
        
         // Determine hits and RF roll.

@@ -49,6 +49,12 @@ You can setup a token macro as well.   So that when the user selects their token
 !DW_MeleeAttack --characterName|@{character_name} --allOut|?{All Out|No,0|Yes,+20}  --charge|?{Charge|No,0|Yes,+10} --aim|?{Aim|No,+0|Half,+10|Full,+20} --calledShot|?{Called Shot|No,+0|Yes,-20} --runningTarget|?{Running|No,+0|Yes,20} --miscModifier|?{Modifier|0} --characterID|@{character_id} --weaponID|1 --targetID|@{target|token_id} --targetCharID|@{target|character_id} --powerLevel|?{PowerLevel|None,0|Fettered,1|Unfettered,2|Push,3}
 ```
 
+For some scenarios it is needed to add the character token ID to the call.   This is only needed at this point for adding horde magnitude bonus to damage.   So this is only beneficial for charType of horde.  Further this only works when added as an ability macro and as a token action.
+
+```
+ --charTokenID|@{selected|token_id}
+```
+
 ### Standard / Force Attack
 
 ![Standard Attack](images/melee.png) ![ForceWeapon Attack](images/melee-force.png)
