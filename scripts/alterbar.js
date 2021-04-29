@@ -44,8 +44,8 @@ AlterScript.Process = function (msg) {
 	var Bar1Loss = ["heals", "wound", "wounds"];
 	var Bar2Gain = ["recovers", "mana", "mana"]
 	var Bar2Loss = ["spends", "mana", "mana"]
-	var Bar3Gain = ["heals", "hit point", "hit points"];
-	var Bar3Loss = ["takes", "damage", "damage"];
+	var Bar3Gain = ["takes", "critical wound", "critical wounds"];
+	var Bar3Loss = ["heals", "critical wound", "critical wounds"];
 
 	// ALTCOLORS - This uses a dark green or dark red emote for gain / loss instead
 	// of the default orange for both.

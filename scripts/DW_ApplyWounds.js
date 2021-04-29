@@ -53,6 +53,8 @@ on("chat:message", function(msg){
             if (token)
             {
                 tarData["name"] = token.get("name");
+                tarData["currentWounds"] = parseInt(token.get("bar1_value"));
+                tarData["maxWounds"] = parseInt(token.get("bar1_max"));
             }
 
             tarData["TB"] = Math.floor(tarData.tough / 10);
@@ -109,7 +111,16 @@ on("chat:message", function(msg){
 
         if (params.alterBar)
         {
-            sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
+            if (woundTotal + tarData.currentWounds > tarData.maxWounds) 
+            {
+                var criticalWounds = (woundTotal + tarData.currentWounds) - tarData.maxWounds;
+                sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
+                sendChat("", `!alter --target|${params.tarTokenID} --bar|3 --amount|${criticalWounds}`);
+            }
+            else
+            {
+                sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
+            }
         }
         else
         {
