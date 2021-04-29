@@ -182,6 +182,9 @@ on("chat:message", function(msg){
             params["currentClip"] = parseInt(getWeaponValue("rangedweaponclip", true));
             params["penetration"] = parseInt(getWeaponValue("rangedweaponpen", true));
             params["charType"] = "NPC";
+            var player_obj = getObj("player", msg.playerid);
+            params["bgColor"] =  player_obj.get("color");
+
             var value = findObjs({type: 'attribute', characterid: params.characterID, name: "charType"})[0];
             if (value)
             {
@@ -278,6 +281,7 @@ on("chat:message", function(msg){
 
         sendChatMessage += powerCardStart;
         sendChatMessage += `\n--name|${params.characterName} is firing at ${params.targetName}!`;
+        sendChatMessage += `\n--bgcolor|${params.bgColor}`;
         sendChatMessage += `\n--leftsub|${params.weaponName}`;
         sendChatMessage += `\n--rightsub|${params.weaponSpecial}`;
         if (params.hitRoll > params.jamTarget)
