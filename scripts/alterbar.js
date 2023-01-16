@@ -1,7 +1,6 @@
 // VERSION INFO
 var AlterBars_Author = "SkyCaptainXIII";
-var AlterBars_Version = "2.0.5";
-var AlterBars_LastUpdated = 1494507176;
+var AlterBars_Version = "2.0.6";
 
 // FUNCTION DECLARATION
 var AlterScript = AlterScript || {};
@@ -20,7 +19,7 @@ on("chat:message", function (msg) {
 });
 
 on("ready", function () {
-	log("-=> AlterBars v" + AlterBars_Version + " <=-  [" + (new Date(AlterBars_LastUpdated * 1000)) + "]");
+	log("-=> AlterBars v" + AlterBars_Version);
 	//log (Date.now().toString().substr(0, 10));
 });
 
@@ -155,7 +154,13 @@ AlterScript.Process = function (msg) {
                 "</div>";
 			if (ANNOUNCE_CHANGE) sendChat("", "/desc " + AlertGain);
 			if (ALERT_GM) sendChat(TargetName, "/w GM " + AlertGain);
-			Target.set("bar" + Bar + "_value", CurrentValue += AlterValue);
+			if (!isNaN(CurrentValue))
+			{
+				Target.set("bar" + Bar + "_value", CurrentValue += AlterValue);
+			}
+			else{
+				log("Current bar" + Bar + " is not a number")
+			}
 		} else {
 			// Subtract from bar...
 			var AlertLoss = "" +
@@ -172,7 +177,14 @@ AlterScript.Process = function (msg) {
 			if (ANNOUNCE_CHANGE) sendChat("", "/desc " + AlertLoss);
 			if (ALERT_GM) sendChat(TargetName, "/w GM " + AlertLoss);
 			if (STOP_AT_ZERO && (CurrentValue - AlterValue < 0)) AlterValue = CurrentValue;
-			Target.set("bar" + Bar + "_value", CurrentValue -= AlterValue);
+			if (!isNaN(CurrentValue))
+			{
+				Target.set("bar" + Bar + "_value", CurrentValue -= AlterValue);
+			}
+			else{
+				log("Current bar" + Bar + "is not a number")
+			}
+			
 		}
 		if ('undefined' !== typeof HealthColors && HealthColors.Update) HealthColors.Update(Target, Previous);
 	});
