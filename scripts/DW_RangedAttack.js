@@ -316,6 +316,15 @@ on("chat:message", function(msg){
                     // RF is not confirmed so clear the exploding dice modifier
                     params.damageRoll = params.damageRoll.replace("!", "")
                 }
+                else
+                {
+                    // we have a RF hit.   So we need to apply RF damage extra if hell fire
+                    if (params.weaponSpecial.toLowerCase().includes("hellfire"))
+                    {
+                        // if we have hellfire ammo trigger RF on things greater than 9
+                        params.damageRoll = params.damageRoll.replace("!", "!>9")
+                    }
+                }
 
                 sendChatMessage += `\n--Damage Type:|${params.damageType}`;
                 sendChatMessage += `\n--Penetration:|${params.penetration}`;
