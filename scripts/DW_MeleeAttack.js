@@ -294,9 +294,16 @@ on("chat:message", function(msg){
         if (params.hits > 0)
         {
             params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null;
+            if (params.fullModifier - params.rfRoll <= 0)
+            {
+                // RF is not confirmed so clear the exploding dice modifier
+                params.damageRoll = params.damageRoll.replace("!", "")
+            }
+
             sendChatMessage += `\n--Damage Type:|${params.damageType}`;
             sendChatMessage += `\n--Penetration:|${params.penetration}`;
             sendChatMessage += `\n--vfx_opt|${params.targetID} BloodSplat`;
+
             if (params.powerLevel > 0)
             {
                 sendChatMessage += `\n--Willpower Test:|Yours [[${params.willDos} [${params.willRollMod}]]] vs ${params.targetName}[[${params.tarWillDos} [${params.tarWillRoll}]]]`;
