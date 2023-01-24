@@ -170,6 +170,25 @@ on("chat:message", function(msg){
             }
         }
 
+        function getAccurateDamageValues()
+        {
+            if (params.aim > 0 && params.weapon_accurate > 0 && params.autoFire == 0)
+            {
+                log("Determine extra accurate damage.")
+                if (params.hitsTotal >= 4)
+                {
+                    log("4 or more successes.")
+                    params.damageRoll = params.damageRoll + " + 2d10"
+                }
+                else if (params.hitsTotal >= 2)
+                {
+                    log("2 or more successes.")
+                    params.damageRoll = params.damageRoll + " + 1d10"
+                }
+            }
+
+        }
+
         function readCharacterSheet()
         {
             params["magBonus"] = 0;
@@ -184,6 +203,14 @@ on("chat:message", function(msg){
             params["charType"] = "NPC";
             var player_obj = getObj("player", msg.playerid);
             params["bgColor"] =  player_obj.get("color");
+            params["weapon_accurate"] = 0
+
+            if (params.weaponSpecial.toLowerCase().includes("accurate") && params.aim > 0)
+            {
+                log("Adding Accurate bonus")
+                params["weapon_accurate"] = 1
+                params.aim += 10
+            }
 
             var value = findObjs({type: 'attribute', characterid: params.characterID, name: "charType"})[0];
             if (value)
@@ -330,6 +357,8 @@ on("chat:message", function(msg){
                 sendChatMessage += `\n--Penetration:|${params.penetration}`;
                 sendChatMessage += `\n--vfx_opt|${params.targetID} BloodSplat`;
             }
+
+            getAccurateDamageValues()
             
             var awValue = "";
             for(lcv = 0; lcv < params.hits; lcv++)
