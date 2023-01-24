@@ -58,8 +58,9 @@ on("chat:message", function(msg){
             }
 
             tarData["TB"] = Math.floor(tarData.tough / 10);
+            tarData.toughMult -= params.felling
             if (tarData.toughMult > 0)
-            {
+            {                
                 tarData.TB = tarData.TB * tarData.toughMult;
             }
         }

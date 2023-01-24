@@ -225,6 +225,21 @@ on("chat:message", function(msg){
             }
         }
 
+        function getFellingValue()
+        {
+            params["felling"] = 0;
+            log("Determine Felling")
+            if (params.weaponSpecial.toLowerCase().includes("felling"))
+            {
+                felling = params.weaponSpecial.toLowerCase().match(/felling\(\d+\)/)
+                if (felling != null && felling.length > 0)
+                {
+                    log("Felling value found")
+                    params["felling"] = parseInt(felling[0].match(/\d+/))
+                }
+            }
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -239,6 +254,9 @@ on("chat:message", function(msg){
         // read values off the character sheet
         readCharacterSheet();
        
+        // Determine if felling is in the damage
+        getFellingValue();
+
         if (params.charType == "HORDE")
         {
             // character is a horde find out any bonus to damage
@@ -330,11 +348,11 @@ on("chat:message", function(msg){
         {
             if (params.forceDamage)
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[^FD] _hordeHits|${params.hordeHits}`;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[^FD] _hordeHits|${params.hordeHits} _felling|${params.felling}`;
             }
             else
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits}`;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits} _felling|${params.felling}`;
             }
         }
 
