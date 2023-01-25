@@ -1,25 +1,21 @@
 on("ready", function () {
     var version = '0.2.4';
-	log("-=> Psy_Avenger v" + version + " Loaded ");
+    log("-=> Psy_Avenger v" + version + " Loaded ");
 });
-on("chat:message", function(msg){
-    if (msg.type=="api" && msg.content.indexOf("!Psy_Avenger") == 0)
-    {
+on("chat:message", function (msg) {
+    if (msg.type == "api" && msg.content.indexOf("!Psy_Avenger") == 0) {
         const showLog = false;
 
         var params = {}
 
-        function logMessage(message, override = false)
-        {
-            if (showLog || override)
-            {
+        function logMessage(message, override = false) {
+            if (showLog || override) {
                 log(message)
             }
         }
 
-        function parseArgs(args){
-            for(lcv = 1; lcv < args.length; lcv++)
-            {
+        function parseArgs(args) {
+            for (lcv = 1; lcv < args.length; lcv++) {
                 var splitValue = args[lcv].trim().split("|");
                 var key = splitValue[0];
                 var value = splitValue[1];
@@ -27,8 +23,7 @@ on("chat:message", function(msg){
             }
         }
 
-        function validateIntArgs()
-        {
+        function validateIntArgs() {
             params.range = parseInt(params.range);
             params.aim = parseInt(params.aim);
             params.calledShot = parseInt(params.calledShot);
@@ -36,12 +31,12 @@ on("chat:message", function(msg){
             params.miscModifier = parseInt(params.miscModifier);
         }
 
-        function getSide(){
-            var sideArray = ["Right", "Left"];    
-            return sideArray[Math.floor(Math.random()*sideArray.length)];
+        function getSide() {
+            var sideArray = ["Right", "Left"];
+            return sideArray[Math.floor(Math.random() * sideArray.length)];
         }
 
-        function getHit(roll, hitNumber){
+        function getHit(roll, hitNumber) {
 
             var hitArray = [
                 ["Head", "Head", getSide() + " Arm", "Body", getSide() + " Arm", "Body"],
@@ -51,67 +46,57 @@ on("chat:message", function(msg){
                 ["Right Leg", getSide() + " Leg", "Body", getSide() + " Arm", "Head", "Body"],
                 ["Left Leg", getSide() + " Leg", "Body", getSide() + " Arm", "Head", "Body"]
             ];
-            
+
             var hitSequence;
-            if (roll >= 1 && roll <=10)
-            {
+            if (roll >= 1 && roll <= 10) {
                 hitSequence = hitArray[0];
             }
-            else if (roll >= 11 && roll <=20)
-            {
+            else if (roll >= 11 && roll <= 20) {
                 hitSequence = hitArray[1];
             }
-            else if (roll >= 21 && roll <=30)
-            {
+            else if (roll >= 21 && roll <= 30) {
                 hitSequence = hitArray[2];
             }
-            else if (roll >= 31 && roll <= 70)
-            {
+            else if (roll >= 31 && roll <= 70) {
                 hitSequence = hitArray[3];
             }
-            else if(roll >= 71 && roll <= 85)
-            {
+            else if (roll >= 71 && roll <= 85) {
                 hitSequence = hitArray[4];
             }
-            else if(roll >= 86 && roll <= 100)
-            {
+            else if (roll >= 86 && roll <= 100) {
                 hitSequence = hitArray[5];
             }
-            
-            if (hitNumber >= (hitSequence.length -1))
-            {
-                hitNumber = (hitSequence.length -1);
+
+            if (hitNumber >= (hitSequence.length - 1)) {
+                hitNumber = (hitSequence.length - 1);
             }
 
             return hitSequence[hitNumber];
         }
 
-        function reverseRoll(roll)
-        {
-            var singles = (roll%10);
-            var tens = (roll-singles);
-            return (singles*10)+(tens/10);    
+        function reverseRoll(roll) {
+            var singles = (roll % 10);
+            var tens = (roll - singles);
+            return (singles * 10) + (tens / 10);
         }
 
-        function determinePsyRating()
-        {
-            switch(params.powerLevel) {
+        function determinePsyRating() {
+            switch (params.powerLevel) {
                 case "Fettered":
-                  params.psyRating = Math.round(params.psyRating * 0.5);
-                  break;
+                    params.psyRating = Math.round(params.psyRating * 0.5);
+                    break;
                 case "Push":
                     params.psyRating = params.psyRating + 3;
-                  break;
+                    break;
                 default:
                     // Do nothing.
-                  break;
-              }
+                    break;
+            }
         }
 
-        function readCharacterSheet()
-        {
+        function readCharacterSheet() {
             params["magBonus"] = 0;
-            params.psyRating = parseInt(getAttrByName(params.characterID, "PsyRating"));            
+            params.psyRating = parseInt(getAttrByName(params.characterID, "PsyRating"));
             // need to determine this now as it effects other values.
             determinePsyRating();
             params["willpower"] = parseInt(getAttrByName(params.characterID, "Willpower"));
@@ -128,35 +113,28 @@ on("chat:message", function(msg){
 
             params["tarAgRoll"] = (params.tarAgility + params.tarAgilityAdv) - randomInteger(100);
             params["tarAgilityDos"] = Math.trunc(params.tarAgRoll / 10);
-            
+
             var token = findObjs({ type: 'graphic', _id: params.targetID })[0];
             params["targetName"] = "Something";
-            if (token)
-            {
+            if (token) {
                 params["targetName"] = token.get("name");
-                var value = findObjs({type: 'attribute', characterid: params.targetCharID, name: "charType"})[0];
-                if (value)
-                {
+                var value = findObjs({ type: 'attribute', characterid: params.targetCharID, name: "charType" })[0];
+                if (value) {
                     params["tarType"] = value.get('current').toUpperCase();
-                    if (params.tarType == "HORDE")
-                    {
+                    if (params.tarType == "HORDE") {
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
-                        if (params.tarMag >= 120)
-                        {
+                        if (params.tarMag >= 120) {
                             params.magBonus = 60;
                         }
-                        else if (params.tarMag >= 90)
-                        {
+                        else if (params.tarMag >= 90) {
                             params.magBonus = 50;
                         }
-                        else if (params.tarMag >= 60)
-                        {
+                        else if (params.tarMag >= 60) {
                             params.magBonus = 40;
                         }
-                        else if (params.tarMag >= 30)
-                        {
+                        else if (params.tarMag >= 30) {
                             params.magBonus = 30;
-                        }          
+                        }
                     }
                 }
             }
@@ -172,12 +150,12 @@ on("chat:message", function(msg){
 
         // read values off the character sheet
         readCharacterSheet();
-        
+
         params["fullModifier"] = params.willpower + params.willpowerAdv + params.range + params.aim + params.calledShot + params.runningTarget + params.miscModifier + (5 * params.psyRating) + params.magBonus;
-        
+
         // Determine the Jam target.
         params["jamTarget"] = 91;
-        
+
         // Determine hits and RF roll.
         params["hitRoll"] = randomInteger(100);
         params["rfRoll"] = randomInteger(100);
@@ -188,7 +166,7 @@ on("chat:message", function(msg){
         // output parameters to the log
         logMessage(params);
 
-        var sendChatMessage ="";
+        var sendChatMessage = "";
         const powerCardStart = "!power {{";
         const powerCardStop = "\n}}";
 
@@ -196,20 +174,16 @@ on("chat:message", function(msg){
         sendChatMessage += `\n--name|${params.characterName} summons the warp to burn ${params.targetName} with the Avenger!`;
         sendChatMessage += `\n--leftsub|Range ${params.powerRange}`;
         sendChatMessage += `\n--rightsub|PsyRating ${params.psyRating}`;
-        if (params.hitRoll > params.jamTarget)
-        {
+        if (params.hitRoll > params.jamTarget) {
             sendChatMessage += `\n--Power Level:|${params.powerLevel}`;
             sendChatMessage += `\n--And is Denied:|${params.hitRoll}`;
         }
-        else
-        {
-            if ((((params.hitRoll % 11) == 0) && params.powerLevel == "Unfettered") || (params.powerLevel == "Push"))
-            {
+        else {
+            if ((((params.hitRoll % 11) == 0) && params.powerLevel == "Unfettered") || (params.powerLevel == "Push")) {
                 sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
                 sendChatMessage += `\n--PERIL OF THE WARP!:|Hit Roll - ${params.hitRoll} Psychic Phenomena - [[1d100]]`;
             }
-            else
-            {
+            else {
                 sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/WprqYyQgk0iGlQ5QzD/giphy.gif)`;
             }
 
@@ -222,34 +196,31 @@ on("chat:message", function(msg){
             params.miscModifier != 0 ? sendChatMessage += `\n--Misc Modifier:|${params.miscModifier}` : null;
             params.magBonus != 0 ? sendChatMessage += `\n--Horde Size Modifier:|${params.magBonus}` : null;
             sendChatMessage += `\n--Hits:|[[${params.hits}]]`;
-            
+
             params.hits > 0 ? sendChatMessage += `\n--Damage Type:|${params.damageType}` : null;
             params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
             params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
 
-            if (params.tarAgilityDos <= 0)
-            {
+            if (params.tarAgilityDos <= 0) {
                 sendChatMessage += `\n--Target On FIRE!!!`;
             }
 
             sendChatMessage += `\n--vfx_opt|${params.tokenID} ${params.targetID} beam-fire`
             var awValue = "";
-            for(lcv = 0; lcv < params.hits; lcv++)
-            {
+            for (lcv = 0; lcv < params.hits; lcv++) {
                 var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--Hit ${lcv+1}:|${whereHit} for [[ [$Atk${lcv+1}] ${params.damageRoll}]]`;
-                lcv > 0 ? awValue+=";" : null;
-                awValue += `${whereHit}-[^Atk${lcv+1}]`;
+                sendChatMessage += `\n--Hit ${lcv + 1}:|${whereHit} for [[ [$Atk${lcv + 1}] ${params.damageRoll}]]`;
+                lcv > 0 ? awValue += ";" : null;
+                awValue += `${whereHit}-[^Atk${lcv + 1}]`;
             }
-            
+
             // if we hit then add the hits rolls
-            if (params.hits > 0)
-            {
+            if (params.hits > 0) {
                 sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1`;
             }
         }
-        
-        sendChatMessage += powerCardStop;        
+
+        sendChatMessage += powerCardStop;
         logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
