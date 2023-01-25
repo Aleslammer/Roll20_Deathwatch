@@ -205,6 +205,15 @@ on("chat:message", function(msg){
             params["bgColor"] =  player_obj.get("color");
             params["weapon_accurate"] = 0
 
+            if (params.weaponSpecial.toLowerCase().includes("kraken"))
+            {
+                log("Adding kraken penetration")
+                if(params.penetration < 8)
+                {
+                    params.penetration = 8
+                }
+            }
+
             if (params.weaponSpecial.toLowerCase().includes("accurate") && params.aim > 0)
             {
                 log("Adding Accurate bonus")
