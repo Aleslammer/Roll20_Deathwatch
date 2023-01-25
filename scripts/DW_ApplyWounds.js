@@ -77,7 +77,14 @@ on("chat:message", function(msg){
             if (tarData.charType == "HORDE")
             {
                 logMessage("HORDE!")
-                return 1;
+                if (params.hellfire == "true")
+                {
+                    return 2;
+                }
+                else
+                {
+                    return 1;
+                }
             }
             else
             {

@@ -228,13 +228,13 @@ on("chat:message", function(msg){
         function getFellingValue()
         {
             params["felling"] = 0;
-            log("Determine Felling")
+            logMessage("Determine Felling")
             if (params.weaponSpecial.toLowerCase().includes("felling"))
             {
                 felling = params.weaponSpecial.toLowerCase().match(/felling\(\d+\)/)
                 if (felling != null && felling.length > 0)
                 {
-                    log("Felling value found")
+                    logMessage("Felling value found")
                     params["felling"] = parseInt(felling[0].match(/\d+/))
                 }
             }

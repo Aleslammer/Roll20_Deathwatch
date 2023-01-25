@@ -174,15 +174,15 @@ on("chat:message", function(msg){
         {
             if (params.aim > 0 && params.weapon_accurate > 0 && params.autoFire == 0)
             {
-                log("Determine extra accurate damage.")
+                logMessage("Determine extra accurate damage.")
                 if (params.hitsTotal >= 4)
                 {
-                    log("4 or more successes.")
+                    logMessage("4 or more successes.")
                     params.damageRoll = params.damageRoll + " + 2d10"
                 }
                 else if (params.hitsTotal >= 2)
                 {
-                    log("2 or more successes.")
+                    logMessage("2 or more successes.")
                     params.damageRoll = params.damageRoll + " + 1d10"
                 }
             }
@@ -204,10 +204,15 @@ on("chat:message", function(msg){
             var player_obj = getObj("player", msg.playerid);
             params["bgColor"] =  player_obj.get("color");
             params["weapon_accurate"] = 0
+            params["hellfire"] = false
+            if (params.weaponSpecial.toLowerCase().includes("hellfire"))
+            {
+                params.hellfire = true
+            }
 
             if (params.weaponSpecial.toLowerCase().includes("kraken"))
             {
-                log("Adding kraken penetration")
+                logMessage("Adding kraken penetration")
                 if(params.penetration < 8)
                 {
                     params.penetration = 8
@@ -216,7 +221,7 @@ on("chat:message", function(msg){
 
             if (params.weaponSpecial.toLowerCase().includes("accurate") && params.aim > 0)
             {
-                log("Adding Accurate bonus")
+                logMessage("Adding Accurate bonus")
                 params["weapon_accurate"] = 1
                 params.aim += 10
             }
@@ -276,13 +281,13 @@ on("chat:message", function(msg){
         function getFellingValue()
         {
             params["felling"] = 0;
-            log("Determine Felling")
+            logMessage("Determine Felling")
             if (params.weaponSpecial.toLowerCase().includes("felling"))
             {
                 felling = params.weaponSpecial.toLowerCase().match(/felling\(\d+\)/)
                 if (felling != null && felling.length > 0)
                 {
-                    log("Felling value found")
+                    logMessage("Felling value found")
                     params["felling"] = parseInt(felling[0].match(/\d+/))
                 }
             }
@@ -373,7 +378,7 @@ on("chat:message", function(msg){
                 else
                 {
                     // we have a RF hit.   So we need to apply RF damage extra if hell fire
-                    if (params.weaponSpecial.toLowerCase().includes("hellfire"))
+                    if (params.hellfire)
                     {
                         // if we have hellfire ammo trigger RF on things greater than 9
                         params.damageRoll = params.damageRoll.replace("!", "!>9")
@@ -400,7 +405,7 @@ on("chat:message", function(msg){
             // if we hit then add the hits rolls
             if (params.hits > 0 )
             {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling}`;
+                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire}`;
             }
 
             reduceAmmo();
