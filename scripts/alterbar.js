@@ -11,8 +11,8 @@ on("chat:message", function (msg) {
 		msg.who = msg.who.replace(" (GM)", "");
 		msg.content = msg.content.replace(/<br\/>\n/g, ' ').replace(/({{(.*?)}})/g, " $2 ");
 		if (msg.content.indexOf("--target") == -1) {
-		    sendChat("ERROR", "/w " + msg.who + " Your macro does not have a target specified.");
-		    return;
+			sendChat("ERROR", "/w " + msg.who + " Your macro does not have a target specified.");
+			return;
 		}
 		AlterScript.Process(msg);
 	}
@@ -82,20 +82,20 @@ AlterScript.Process = function (msg) {
 		if (Tag.toLowerCase() == "bar") Bar = Content;
 		if (Tag.toLowerCase() == "amount") AlterValue = Content;
 		if (Tag.toLowerCase() == "show" && Content.toLowerCase() == "gm") {
-            ANNOUNCE_CHANGE = false;
-            ALERT_GM = true;
+			ANNOUNCE_CHANGE = false;
+			ALERT_GM = true;
 		}
-        if (Tag.toLowerCase() == "show" && Content.toLowerCase() == "none") {
-            ANNOUNCE_CHANGE = false;
-            ALERT_GM = false;
+		if (Tag.toLowerCase() == "show" && Content.toLowerCase() == "none") {
+			ANNOUNCE_CHANGE = false;
+			ALERT_GM = false;
 		}
 	});
-	
-    if(!Target) {
-        sendChat("ERROR", `/w "${who}" Not a valid target id.`);
-        return;
-    }
-    
+
+	if (!Target) {
+		sendChat("ERROR", `/w "${who}" Not a valid target id.`);
+		return;
+	}
+
 	if (Bar == 1 || Bar == Bar1Key) {
 		BarGain = Bar1Gain;
 		BarLoss = Bar1Loss;
@@ -106,28 +106,28 @@ AlterScript.Process = function (msg) {
 		BarGain = Bar3Gain;
 		BarLoss = Bar3Loss;
 	} else {
-        sendChat("ERROR", "/w " + who + " That is not a valid bar.");
+		sendChat("ERROR", "/w " + who + " That is not a valid bar.");
 		return;
 	}
-    
+
 	// Get current and max values from the token...
 	var CurrentValue = parseInt(Target.get("bar" + Bar + "_value"));
 	var MaxValue = parseInt(Target.get("bar" + Bar + "_max"));
-	   
+
 	// Set current values as previous values for transit to Tint/Aura HealthColors...
 	var Previous = JSON.parse(JSON.stringify(Target));
-    
+
 	// Check for a + or - sign...
 	var Operand1 = AlterValue.charAt(0);
 	var Operand2 = AlterValue.charAt(1);
 	if (Operand2 === "+" || Operand2 === "-") AlterValue = AlterValue.substring(2);
 	else if (Operand1 === "+" || Operand1 === "-") AlterValue = AlterValue.substring(1);
-    
+
 	// Save the value for the tooltip...
 	var Expression = AlterValue;
-    
+
 	// Define CSS...
-	var AlertGainStyle = "max-height: 20px; width: 100%; padding: 3px 40px 6px 0px; border: 1px solid #000; border-radius: 4px; background-color: " +  + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); font-family: Candal; font-style: normal; font-size: 1.05em; line-height: 1em; color: #FFF; font-weight: normal; text-align: left; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;";
+	var AlertGainStyle = "max-height: 20px; width: 100%; padding: 3px 40px 6px 0px; border: 1px solid #000; border-radius: 4px; background-color: " + + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); font-family: Candal; font-style: normal; font-size: 1.05em; line-height: 1em; color: #FFF; font-weight: normal; text-align: left; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;";
 	var AlertLossStyle = "max-height: 20px; width: 100%; padding: 3px 0px 6px 0px; border: 1px solid #000; border-radius: 4px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#440000") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); font-family: Candal; font-style: normal; font-size: 1.05em; line-height: 1em; color: #FFF; font-weight: normal; text-align: left; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;";
 	var AlertOuterStyle = "max-height: 40px; width: 100%; margin: 10px 0px 5px -7px; line-height: 40px;";
 	var AlertImageStyle = "height: 40px; width: 40px; float: right; margin: -11px 5px 0px 0px;";
@@ -142,49 +142,47 @@ AlterScript.Process = function (msg) {
 			// Add to bar...
 			if (PREVENT_OVERMAX) AlterValue = (AlterValue + CurrentValue > MaxValue) ? MaxValue - CurrentValue : AlterValue;
 			var AlertGain = "" +
-                "<div style='display: block; margin-left: -7px; margin-right: 2px; padding: 2px 0px;'>" +
-                    "<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#c70000") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
-                        "<div style='position: absolute; top: -10px; left: 5px; height: 40px; width: 40px;'>" + 
-                            "<img src='" + Target.get("imgsrc") + "' style='height: 40px; width: 40px;'></img>" + 
-                        "</div>" +
-                        "<div style='font-family: Candal; font-size: 13px; line-height: 15px; color: #FFF; font-weight: normal; text-align: center; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>" + 
-                            TargetName + " " + BarGain[0] + " " + AlterValue + " " + ((AlterValue == 1) ? BarGain[1] : BarGain[2]) + "." + 
-                        "</div>" + 
-                    "</div>" +
-                "</div>";
+				"<div style='display: block; margin-left: -7px; margin-right: 2px; padding: 2px 0px;'>" +
+				"<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#c70000") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
+				"<div style='position: absolute; top: -10px; left: 5px; height: 40px; width: 40px;'>" +
+				"<img src='" + Target.get("imgsrc") + "' style='height: 40px; width: 40px;'></img>" +
+				"</div>" +
+				"<div style='font-family: Candal; font-size: 13px; line-height: 15px; color: #FFF; font-weight: normal; text-align: center; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>" +
+				TargetName + " " + BarGain[0] + " " + AlterValue + " " + ((AlterValue == 1) ? BarGain[1] : BarGain[2]) + "." +
+				"</div>" +
+				"</div>" +
+				"</div>";
 			if (ANNOUNCE_CHANGE) sendChat("", "/desc " + AlertGain);
 			if (ALERT_GM) sendChat(TargetName, "/w GM " + AlertGain);
-			if (!isNaN(CurrentValue))
-			{
+			if (!isNaN(CurrentValue)) {
 				Target.set("bar" + Bar + "_value", CurrentValue += AlterValue);
 			}
-			else{
+			else {
 				log("Current bar" + Bar + " is not a number")
 			}
 		} else {
 			// Subtract from bar...
 			var AlertLoss = "" +
-                "<div style='display: block; margin-left: -7px; margin-right: 2px; padding: 2px 0px;'>" +
-                    "<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#004400") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
-                        "<div style='position: absolute; top: -10px; left: 5px; height: 40px; width: 40px;'>" + 
-                            "<img src='" + Target.get("imgsrc") + "' style='height: 40px; width: 40px;'></img>" + 
-                        "</div>" +
-                        "<div style='font-family: Candal; font-size: 13px; line-height: 15px; color: #FFF; font-weight: normal; text-align: center; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>" + 
-                            TargetName + " " + BarLoss[0] + " " + AlterValue + " " + ((AlterValue == 1) ? BarLoss[1] : BarLoss[2]) + "." + 
-                        "</div>" + 
-                    "</div>" +
-                "</div>";
+				"<div style='display: block; margin-left: -7px; margin-right: 2px; padding: 2px 0px;'>" +
+				"<div style='position: relative; border: 1px solid #000; border-radius: 5px; background-color: " + ((!ALT_COLORS) ? "#BF5700" : "#004400") + "; background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0)); margin-right: -2px; padding: 2px 5px 5px 50px;'>" +
+				"<div style='position: absolute; top: -10px; left: 5px; height: 40px; width: 40px;'>" +
+				"<img src='" + Target.get("imgsrc") + "' style='height: 40px; width: 40px;'></img>" +
+				"</div>" +
+				"<div style='font-family: Candal; font-size: 13px; line-height: 15px; color: #FFF; font-weight: normal; text-align: center; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>" +
+				TargetName + " " + BarLoss[0] + " " + AlterValue + " " + ((AlterValue == 1) ? BarLoss[1] : BarLoss[2]) + "." +
+				"</div>" +
+				"</div>" +
+				"</div>";
 			if (ANNOUNCE_CHANGE) sendChat("", "/desc " + AlertLoss);
 			if (ALERT_GM) sendChat(TargetName, "/w GM " + AlertLoss);
 			if (STOP_AT_ZERO && (CurrentValue - AlterValue < 0)) AlterValue = CurrentValue;
-			if (!isNaN(CurrentValue))
-			{
+			if (!isNaN(CurrentValue)) {
 				Target.set("bar" + Bar + "_value", CurrentValue -= AlterValue);
 			}
-			else{
+			else {
 				log("Current bar" + Bar + "is not a number")
 			}
-			
+
 		}
 		if ('undefined' !== typeof HealthColors && HealthColors.Update) HealthColors.Update(Target, Previous);
 	});
