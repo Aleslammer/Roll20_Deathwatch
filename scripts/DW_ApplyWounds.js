@@ -64,7 +64,7 @@ on("chat:message", function (msg) {
             armourValue = armourValue > 0 ? armourValue : 0;
             var wounds = damage - armourValue - tarData.TB;
             wounds = wounds > 0 ? wounds : 0;
-            logMessage(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}, Wounds${wounds}`);
+            logMessage(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}, Wounds:${wounds}`);
             if (tarData.charType == "HORDE") {
                 logMessage("HORDE!")
                 if (params.hellfire == "true") {
