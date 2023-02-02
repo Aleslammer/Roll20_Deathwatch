@@ -180,6 +180,11 @@ on("chat:message", function (msg) {
                 }
             }
 
+            params["reliable"] = false
+            if (params.weaponSpecial.toLowerCase().includes("reliable")) {
+                params.reliable = true
+            }
+
             if (params.weaponSpecial.toLowerCase().includes("accurate") && params.aim > 0) {
                 logMessage("Adding Accurate bonus")
                 params["weapon_accurate"] = 1
@@ -273,6 +278,9 @@ on("chat:message", function (msg) {
         // Determine hits and RF roll.
         params["hitRoll"] = randomInteger(100);
         params["rfRoll"] = randomInteger(100);
+
+        // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
+        params["rejam"] = params.reliable ? randomInteger(10) : 10;
         params["hitsTotal"] = Math.trunc((params.fullModifier - params.hitRoll) / 10);
         params["hits"] = params.hitsTotal > 0 ? (params.hitsTotal > params.shells ? params.shells : params.hitsTotal) : 0;
         params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
@@ -289,7 +297,7 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--bgcolor|${params.bgColor}`;
         sendChatMessage += `\n--leftsub|${params.weaponName}`;
         sendChatMessage += `\n--rightsub|${params.weaponSpecial}`;
-        if (params.hitRoll > params.jamTarget) {
+        if (params.hitRoll > params.jamTarget && params.rejam == 10) {
             sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
             sendChatMessage += `\n--JAMMED:|(${params.hitRoll})`
             reduceAmmo();
