@@ -180,6 +180,12 @@ on("chat:message", function (msg) {
                 }
             }
 
+            params["nojam"] = false
+            if (params.weaponSpecial.toLowerCase().includes("nojam")) {
+                logMessage("Adding no jam")
+                params.nojam = true
+            }
+
             params["reliable"] = false
             if (params.weaponSpecial.toLowerCase().includes("reliable")) {
                 params.reliable = true
@@ -274,6 +280,11 @@ on("chat:message", function (msg) {
 
         // Determine the Jam target.   When autofire jams are more frequent
         params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
+        if (params.nojam) {
+            // if no jam is set then this weapon cannot be jammed.
+            // Set the jam target to 110 (Which cannot be rolled)
+            params.jamTarget = 110
+        }
 
         // Determine hits and RF roll.
         params["hitRoll"] = randomInteger(100);
