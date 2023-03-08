@@ -106,20 +106,22 @@ on("chat:message", function (msg) {
         }
 
         function reduceAmmo() {
-            var myRow = findObjs({ type: 'attribute', characterid: params.characterID }).filter(x => x.get("name").includes("rw_row_id") && x.get("current") == params.weaponID)[0];
-            if (myRow) {
-                var attrName = "repeating_rangedweapons_" + params.weaponRowID + "_rangedweaponclip";
-                var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
+            if (!params.living_ammo) {
+                var myRow = findObjs({ type: 'attribute', characterid: params.characterID }).filter(x => x.get("name").includes("rw_row_id") && x.get("current") == params.weaponID)[0];
                 if (myRow) {
-                    var currentValue = parseInt(myRow.get("current"));
-                    myRow.set("current", currentValue - params.shells)
+                    var attrName = "repeating_rangedweapons_" + params.weaponRowID + "_rangedweaponclip";
+                    var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
+                    if (myRow) {
+                        var currentValue = parseInt(myRow.get("current"));
+                        myRow.set("current", currentValue - params.shells)
+                    }
+                    else {
+                        logMessage("Missing Row for " + attrName, true);
+                    }
                 }
                 else {
-                    logMessage("Missing Row for " + attrName, true);
+                    logMessage("Missing Row for Ammo Update on " + params.characterName, true);
                 }
-            }
-            else {
-                logMessage("Missing Row for Ammo Update on " + params.characterName, true);
             }
         }
 
@@ -180,10 +182,10 @@ on("chat:message", function (msg) {
                 }
             }
 
-            params["nojam"] = false
-            if (params.weaponSpecial.toLowerCase().includes("nojam")) {
-                logMessage("Adding no jam")
-                params.nojam = true
+            params["living_ammo"] = false
+            if (params.weaponSpecial.toLowerCase().includes("living ammo")) {
+                logMessage("Adding Living Ammo")
+                params.living_ammo = true
             }
 
             params["reliable"] = false
@@ -280,7 +282,7 @@ on("chat:message", function (msg) {
 
         // Determine the Jam target.   When autofire jams are more frequent
         params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
-        if (params.nojam) {
+        if (params.living_ammo) {
             // if no jam is set then this weapon cannot be jammed.
             // Set the jam target to 110 (Which cannot be rolled)
             params.jamTarget = 110
