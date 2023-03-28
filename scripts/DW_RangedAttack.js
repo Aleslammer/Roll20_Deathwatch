@@ -106,20 +106,22 @@ on("chat:message", function (msg) {
         }
 
         function reduceAmmo() {
-            var myRow = findObjs({ type: 'attribute', characterid: params.characterID }).filter(x => x.get("name").includes("rw_row_id") && x.get("current") == params.weaponID)[0];
-            if (myRow) {
-                var attrName = "repeating_rangedweapons_" + params.weaponRowID + "_rangedweaponclip";
-                var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
+            if (!params.living_ammo) {
+                var myRow = findObjs({ type: 'attribute', characterid: params.characterID }).filter(x => x.get("name").includes("rw_row_id") && x.get("current") == params.weaponID)[0];
                 if (myRow) {
-                    var currentValue = parseInt(myRow.get("current"));
-                    myRow.set("current", currentValue - params.shells)
+                    var attrName = "repeating_rangedweapons_" + params.weaponRowID + "_rangedweaponclip";
+                    var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
+                    if (myRow) {
+                        var currentValue = parseInt(myRow.get("current"));
+                        myRow.set("current", currentValue - params.shells)
+                    }
+                    else {
+                        logMessage("Missing Row for " + attrName, true);
+                    }
                 }
                 else {
-                    logMessage("Missing Row for " + attrName, true);
+                    logMessage("Missing Row for Ammo Update on " + params.characterName, true);
                 }
-            }
-            else {
-                logMessage("Missing Row for Ammo Update on " + params.characterName, true);
             }
         }
 
@@ -178,6 +180,17 @@ on("chat:message", function (msg) {
                 if (params.penetration < 8) {
                     params.penetration = 8
                 }
+            }
+
+            params["living_ammo"] = false
+            if (params.weaponSpecial.toLowerCase().includes("living ammo")) {
+                logMessage("Adding Living Ammo")
+                params.living_ammo = true
+            }
+
+            params["reliable"] = false
+            if (params.weaponSpecial.toLowerCase().includes("reliable")) {
+                params.reliable = true
             }
 
             if (params.weaponSpecial.toLowerCase().includes("accurate") && params.aim > 0) {
@@ -269,11 +282,26 @@ on("chat:message", function (msg) {
 
         // Determine the Jam target.   When autofire jams are more frequent
         params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
+        if (params.living_ammo) {
+            // if no jam is set then this weapon cannot be jammed.
+            // Set the jam target to 110 (Which cannot be rolled)
+            params.jamTarget = 110
+        }
 
         // Determine hits and RF roll.
         params["hitRoll"] = randomInteger(100);
         params["rfRoll"] = randomInteger(100);
-        params["hitsTotal"] = Math.trunc((params.fullModifier - params.hitRoll) / 10);
+
+        // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
+        params["rejam"] = params.reliable ? randomInteger(10) : 10;
+        params["hitsTotal"] = 0;
+        if ((params.fullModifier - params.hitRoll) > 0) {
+            // we have a hit
+            params["hitsTotal"] = 1;
+            // determine how many successes every 10 add in theory another hit
+            params["hitsTotal"] += Math.trunc((params.fullModifier - params.hitRoll) / 10);
+        }
+
         params["hits"] = params.hitsTotal > 0 ? (params.hitsTotal > params.shells ? params.shells : params.hitsTotal) : 0;
         params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
 
@@ -289,7 +317,7 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--bgcolor|${params.bgColor}`;
         sendChatMessage += `\n--leftsub|${params.weaponName}`;
         sendChatMessage += `\n--rightsub|${params.weaponSpecial}`;
-        if (params.hitRoll > params.jamTarget) {
+        if (params.hitRoll > params.jamTarget && params.rejam == 10) {
             sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
             sendChatMessage += `\n--JAMMED:|(${params.hitRoll})`
             reduceAmmo();
