@@ -294,7 +294,14 @@ on("chat:message", function (msg) {
 
         // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
         params["rejam"] = params.reliable ? randomInteger(10) : 10;
-        params["hitsTotal"] = Math.trunc((params.fullModifier - params.hitRoll) / 10);
+        params["hitsTotal"] = 0;
+        if ((params.fullModifier - params.hitRoll) > 0) {
+            // we have a hit
+            params["hitsTotal"] = 1;
+            // determine how many successes every 10 add in theory another hit
+            params["hitsTotal"] += Math.trunc((params.fullModifier - params.hitRoll) / 10);
+        }
+
         params["hits"] = params.hitsTotal > 0 ? (params.hitsTotal > params.shells ? params.shells : params.hitsTotal) : 0;
         params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
 

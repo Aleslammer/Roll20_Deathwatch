@@ -230,7 +230,14 @@ on("chat:message", function (msg) {
         // Determine hits and RF roll.
         params["hitRoll"] = randomInteger(100);
         params["rfRoll"] = randomInteger(100);
-        params["hitsTotal"] = Math.trunc((params.fullModifier - params.hitRoll) / 10);
+        params["hitsTotal"] = 0
+        if ((params.fullModifier - params.hitRoll) > 0) {
+            // we have a hit
+            params["hitsTotal"] = 1
+            // determine how many successes every 10 add in theory another hit
+            params["hitsTotal"] += Math.trunc((params.fullModifier - params.hitRoll) / 10);
+        }
+
         params["hits"] = params.hitsTotal > 0 ? 1 : 0;
         params["hordeHits"] = params.hitsTotal > 0 ? (params.hitsTotal > 2 ? Math.trunc(params.hitsTotal / 2) : 1) : 0;
         params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
