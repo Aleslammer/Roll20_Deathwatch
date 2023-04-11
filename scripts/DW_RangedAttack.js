@@ -105,7 +105,7 @@ on("chat:message", function (msg) {
             }
         }
 
-        function reduceAmmo() {
+        function reduceAmmo(amount) {
             if (!params.living_ammo) {
                 var myRow = findObjs({ type: 'attribute', characterid: params.characterID }).filter(x => x.get("name").includes("rw_row_id") && x.get("current") == params.weaponID)[0];
                 if (myRow) {
@@ -113,7 +113,7 @@ on("chat:message", function (msg) {
                     var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
                     if (myRow) {
                         var currentValue = parseInt(myRow.get("current"));
-                        myRow.set("current", currentValue - params.shells)
+                        myRow.set("current", currentValue - amount)
                     }
                     else {
                         logMessage("Missing Row for " + attrName, true);
@@ -320,7 +320,7 @@ on("chat:message", function (msg) {
         if (params.hitRoll > params.jamTarget && params.rejam == 10) {
             sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
             sendChatMessage += `\n--JAMMED:|(${params.hitRoll})`
-            reduceAmmo();
+            reduceAmmo(1);
         }
         else if (params.currentClip < params.shells) {
             sendChatMessage += `\n--Not Enough Ammo`;
@@ -373,7 +373,7 @@ on("chat:message", function (msg) {
                 sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire}`;
             }
 
-            reduceAmmo();
+            reduceAmmo(params.shells);
         }
 
         sendChatMessage += powerCardStop;
