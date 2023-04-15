@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.3';
+    var version = '2.0.0';
     log("-=> DW_MeleeAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -243,7 +243,7 @@ on("chat:message", function (msg) {
         params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
 
         if (params.psyRating != "NaN" && params.hits > 0 && params.powerLevel > 0) {
-            // we have a force weapon and need to calcuate extra damage.
+            // we have a force weapon and need to calculate extra damage.
             params["willRoll"] = randomInteger(100);
             params["willRollMod"] = (params.willpower + params.willpowerAdv + (5 * params.psyRating)) - params.willRoll;
             params["tarWillRoll"] = (params.tarWillpower + params.tarWillpowerAdv) - randomInteger(100);
