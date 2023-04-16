@@ -4,7 +4,7 @@ on("ready", function () {
 });
 on("chat:message", function (msg) {
     if (msg.type == "api" && msg.content.indexOf("!DW_RangedAttack") == 0) {
-        const showLog = true;
+        const showLog = false;
 
         var params = {}
 
@@ -105,26 +105,6 @@ on("chat:message", function (msg) {
             }
         }
 
-        function reduceAmmo(amount) {
-            if (!params.living_ammo) {
-                var myRow = findObjs({ type: 'attribute', characterid: params.characterID }).filter(x => x.get("name").includes("rw_row_id") && x.get("current") == params.weaponID)[0];
-                if (myRow) {
-                    var attrName = "repeating_rangedweapons_" + params.weaponRowID + "_rangedweaponclip";
-                    var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
-                    if (myRow) {
-                        var currentValue = parseInt(myRow.get("current"));
-                        myRow.set("current", currentValue - amount)
-                    }
-                    else {
-                        logMessage("Missing Row for " + attrName, true);
-                    }
-                }
-                else {
-                    logMessage("Missing Row for Ammo Update on " + params.characterName, true);
-                }
-            }
-        }
-
         function getWeaponValue(name, isRequired) {
             var attrName = "repeating_rangedweapons_" + params.weaponRowID + "_" + name;
             var myRow = findObjs({ type: 'attribute', characterid: params.characterID, name: attrName })[0]
@@ -161,7 +141,7 @@ on("chat:message", function (msg) {
             params["ballisticSkill"] = parseInt(getAttrByName(params.characterID, "BallisticSkill"));
             params["ballisticSkillAdv"] = parseInt(getAttrByName(params.characterID, "advanceBS"));
             params["weaponName"] = getWeaponValue("rangedweaponname", true);
-            params["weaponSpecial"] = getWeaponValue("rangedweaponspecial");
+            params["weaponSpecial"] = getWeaponValue("rangedweaponspecial", false);
             params["damageRoll"] = getWeaponValue("rangedweapondamage", true);
             params["damageType"] = getWeaponValue("rangedweapontype", true);
             params["currentClip"] = parseInt(getWeaponValue("rangedweaponclip", true));
@@ -292,6 +272,7 @@ on("chat:message", function (msg) {
             }
 
             sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire}`;
+            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
             sendChatMessage += `\n--X |`;
             return sendChatMessage;
         }
@@ -365,7 +346,7 @@ on("chat:message", function (msg) {
         if (params.hitRoll > params.jamTarget && params.rejam == 10) {
             sendChatMessage += `\n--+|[img](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
             sendChatMessage += `\n--+JAMMED:|(${params.hitRoll})`
-            reduceAmmo(1);
+            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|1`;
         }
         else if (params.currentClip < params.shells) {
             sendChatMessage += `\n--+Not Enough Ammo`;
@@ -390,8 +371,10 @@ on("chat:message", function (msg) {
             if (params.hits > 0) {
                 sendChatMessage = buildDamageButton(sendChatMessage)
             }
-
-            reduceAmmo(params.shells);
+            else {
+                // even if no hits we reduce ammo
+                sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
+            }
         }
 
         sendChatMessage += scriptCardStop;
