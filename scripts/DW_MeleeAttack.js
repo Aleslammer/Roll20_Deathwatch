@@ -203,6 +203,50 @@ on("chat:message", function (msg) {
             }
         }
 
+        function buildDamageButton(sendChatMessage) {
+            sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton]`;
+            sendChatMessage += `\n--X |`;
+            sendChatMessage += `\n--: EXEC_DAMAGE|`;
+            sendChatMessage += `\n--#title | ${params.characterName} damages ${params.targetName}`;
+            params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null;
+            if (params.fullModifier - params.rfRoll <= 0) {
+                // RF is not confirmed so clear the exploding dice modifier
+                params.damageRoll = params.damageRoll.replace("!", "")
+            }
+
+            sendChatMessage += `\n--+Damage Type:|${params.damageType}`;
+            sendChatMessage += `\n--+Penetration:|${params.penetration}`;
+            sendChatMessage += `\n--@vfx_opt|${params.targetID} BloodSplat`;
+
+            if (params.powerLevel > 0) {
+                sendChatMessage += `\n--+Willpower Test:|Yours [[${params.willDos} [${params.willRollMod}]]] vs ${params.targetName}[[${params.tarWillDos} [${params.tarWillRoll}]]]`;
+                sendChatMessage += `\n--=ForceDamage|${params.forceDamage}`;
+                params.forceDamage ? sendChatMessage += `\n--+Force Damage:|[[ [$FD] ${params.forceDamage}]]` : null;
+                if ((((params.willRoll % 11) == 0) && params.powerLevel == 2) || (params.powerLevel == 3)) {
+                    sendChatMessage += `\n--+|[img](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
+                    sendChatMessage += `\n--+PERIL OF THE WARP!:|Will Roll - ${params.willRoll} Psychic Phenomena - [[1d100]]`;
+                }
+            }
+
+            var awValue = "";
+            for (lcv = 0; lcv < params.hits; lcv++) {
+                var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
+                sendChatMessage += `\n--=Damage${lcv}|${params.damageRoll}+[[${params.strengthBonus}]]`;
+                sendChatMessage += `\n--+Hit ${lcv + 1}:|${whereHit} for [$Damage${lcv}]`;
+                lcv > 0 ? awValue += ";" : null;
+                awValue += `${whereHit}-[$Damage${lcv}]`;
+            }
+
+            if (params.forceDamage) {
+                sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[$ForceDamage] _hordeHits|${params.hordeHits} _felling|${params.felling}`;
+            }
+            else {
+                sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits} _felling|${params.felling}`;
+            }
+            sendChatMessage += `\n--X |`;
+            return sendChatMessage;
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -258,65 +302,34 @@ on("chat:message", function (msg) {
         logMessage(params);
 
         var sendChatMessage = "";
-        const powerCardStart = "!power {{";
-        const powerCardStop = "\n}}";
+        const scriptCardStart = "!script {{";
+        const scriptCardStop = "\n}}";
 
-        sendChatMessage += powerCardStart;
-        sendChatMessage += `\n--name|${params.characterName} is attacking ${params.targetName}!`;
-        sendChatMessage += `\n--bgcolor|${params.bgColor}`;
-        sendChatMessage += `\n--leftsub|${params.weaponName}`;
-        sendChatMessage += `\n--rightsub|${params.weaponSpecial}`;
-        sendChatMessage += `\n--!showpic|[x](https://thumbs.gfycat.com/TinyBitesizedKilldeer-size_restricted.gif)`;
-        params.aim != 0 ? sendChatMessage += `\n--Aim Modifier:|${params.aim}` : null;
-        params.allOut != 0 ? sendChatMessage += `\n--All Out Modifier:|${params.allOut}` : null;
-        params.calledShot != 0 ? sendChatMessage += `\n--Called Shot Modifier:|${params.calledShot}` : null;
-        params.charge != 0 ? sendChatMessage += `\n--Charge Modifier:|${params.charge}` : null;
-        params.runningTarget != 0 ? sendChatMessage += `\n--Running Target Modifier:|${params.runningTarget}` : null;
-        params.miscModifier != 0 ? sendChatMessage += `\n--Misc Modifier:|${params.miscModifier}` : null;
-        params.magBonus != 0 ? sendChatMessage += `\n--Horde Size Modifier:|${params.magBonus}` : null;
-        sendChatMessage += `\n--Hits:|[[${params.hits} ${params.rollValue}]]`;
-        sendChatMessage += `\n--Horde Hits:|[[${params.hordeHits}]]`;
+        sendChatMessage += scriptCardStart;
+        sendChatMessage += `\n--#title|${params.characterName} is attacking ${params.targetName}!`;
+        sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
+        sendChatMessage += `\n--#subtitleFontSize|10px`;
+        sendChatMessage += `\n--#subtitleFontColor|#000000`;
+        sendChatMessage += `\n--#leftsub|${params.weaponName}`;
+        sendChatMessage += `\n--#rightsub|${params.weaponSpecial}`;
+        sendChatMessage += `\n--+|[img](https://thumbs.gfycat.com/TinyBitesizedKilldeer-size_restricted.gif)`;
+        params.aim != 0 ? sendChatMessage += `\n--+Aim Modifier:|${params.aim}` : null;
+        params.allOut != 0 ? sendChatMessage += `\n--+All Out Modifier:|${params.allOut}` : null;
+        params.calledShot != 0 ? sendChatMessage += `\n--+Called Shot Modifier:|${params.calledShot}` : null;
+        params.charge != 0 ? sendChatMessage += `\n--+Charge Modifier:|${params.charge}` : null;
+        params.runningTarget != 0 ? sendChatMessage += `\n--+Running Target Modifier:|${params.runningTarget}` : null;
+        params.miscModifier != 0 ? sendChatMessage += `\n--+Misc Modifier:|${params.miscModifier}` : null;
+        params.magBonus != 0 ? sendChatMessage += `\n--+Horde Size Modifier:|${params.magBonus}` : null;
+        sendChatMessage += `\n--+Hits:|[[${params.hits} ${params.rollValue}]]`;
+        sendChatMessage += `\n--+Horde Hits:|[[${params.hordeHits}]]`;
         if (params.hits > 0) {
-            params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null;
-            if (params.fullModifier - params.rfRoll <= 0) {
-                // RF is not confirmed so clear the exploding dice modifier
-                params.damageRoll = params.damageRoll.replace("!", "")
-            }
-
-            sendChatMessage += `\n--Damage Type:|${params.damageType}`;
-            sendChatMessage += `\n--Penetration:|${params.penetration}`;
-            sendChatMessage += `\n--vfx_opt|${params.targetID} BloodSplat`;
-
-            if (params.powerLevel > 0) {
-                sendChatMessage += `\n--Willpower Test:|Yours [[${params.willDos} [${params.willRollMod}]]] vs ${params.targetName}[[${params.tarWillDos} [${params.tarWillRoll}]]]`;
-                params.forceDamage ? sendChatMessage += `\n--Force Damage:|[[ [$FD] ${params.forceDamage}]]` : null;
-                if ((((params.willRoll % 11) == 0) && params.powerLevel == 2) || (params.powerLevel == 3)) {
-                    sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
-                    sendChatMessage += `\n--PERIL OF THE WARP!:|Will Roll - ${params.willRoll} Psychic Phenomena - [[1d100]]`;
-                }
-            }
+            sendChatMessage = buildDamageButton(sendChatMessage);
         }
 
-        var awValue = "";
-        for (lcv = 0; lcv < params.hits; lcv++) {
-            var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-            sendChatMessage += `\n--Hit ${lcv + 1}:|${whereHit} for [[ [$Atk${lcv + 1}] ${params.damageRoll}+[[${params.strengthBonus}]]]]`;
-            lcv > 0 ? awValue += ";" : null;
-            awValue += `${whereHit}-[^Atk${lcv + 1}]`;
-        }
-
-        // if we hit then add the hits rolls
-        if (params.hits > 0) {
-            if (params.forceDamage) {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[^FD] _hordeHits|${params.hordeHits} _felling|${params.felling}`;
-            }
-            else {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits} _felling|${params.felling}`;
-            }
-        }
-
-        sendChatMessage += powerCardStop;
+        sendChatMessage += scriptCardStop;
         logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
+
+        // TODO - need to update showing of the target rolls for the will power tests.   
     }
 });
