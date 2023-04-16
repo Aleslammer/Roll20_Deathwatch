@@ -6,8 +6,9 @@ This is called from the modified character sheet passing values based on the wea
 
 ## Requirements
 
-    - PowerCards
+    - ScriptCards
     - DW_ApplyWounds
+    - DW_ReduceAmmo
 
 ## Input
 
@@ -43,6 +44,7 @@ The script does a few things of note.
 * Will re-roll the Righteous Fury attack for determining if confirmation.
   * This does not mean that a Righteous Fury has landed.   The damage is rolled after this script is complete and any RF damage must be rolled.
 * Will send hits and damage to the [DW_ApplyWounds](applywounds.md) api script.
+* Will send ammo count to the [DW_ReduceAmmo](reduceammo.md) api script.
 * You can enable logging of all sorts of API data by changing the value of the log constant.
 
     ```javascript
