@@ -234,14 +234,8 @@ on("chat:message", function (msg) {
         }
 
         function buildDamageButton(sendChatMessage) {
-
-            // Todo
-            // Melee Attack
-            // make reduce ammo a script to call rather than a function.  Then it can be attached to apply the damage section
-            // test jamming?
-            // Add apply 
-
-            sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton]`;
+            sendChatMessage += `\n--+ | [sheetbutton]Attempt Dodge?::${params.targetName}::dodge[/sheetbutton]`;
+            sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton] [rbutton]Attack Dodged:: EXEC_DODGED[/rbutton]`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DAMAGE|`;
             sendChatMessage += `\n--#title | ${params.characterName} damages ${params.targetName}`;
@@ -272,6 +266,10 @@ on("chat:message", function (msg) {
             }
 
             sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire}`;
+            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
+            sendChatMessage += `\n--X |`;
+            sendChatMessage += `\n--: EXEC_DODGED|`;
+            sendChatMessage += `\n--#title |  ${params.targetName} dodges attack from ${params.characterName}`;
             sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
             sendChatMessage += `\n--X |`;
             return sendChatMessage;
