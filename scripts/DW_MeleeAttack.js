@@ -204,7 +204,8 @@ on("chat:message", function (msg) {
         }
 
         function buildDamageButton(sendChatMessage) {
-            sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton]`;
+            sendChatMessage += `\n--+ | [sheetbutton]Attempt Parry?::${params.targetName}::WS[/sheetbutton]`;
+            sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton] [rbutton]Attack Parried:: EXEC_PARRIED[/rbutton]`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DAMAGE|`;
             sendChatMessage += `\n--#title | ${params.characterName} damages ${params.targetName}`;
@@ -243,6 +244,9 @@ on("chat:message", function (msg) {
             else {
                 sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits} _felling|${params.felling}`;
             }
+            sendChatMessage += `\n--X |`;
+            sendChatMessage += `\n--: EXEC_PARRIED|`;
+            sendChatMessage += `\n--#title |  ${params.targetName} parries the attack from ${params.characterName}`;
             sendChatMessage += `\n--X |`;
             return sendChatMessage;
         }
