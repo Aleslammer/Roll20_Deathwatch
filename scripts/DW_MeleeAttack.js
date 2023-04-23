@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.0.0';
+    var version = '2.1.0';
     log("-=> DW_MeleeAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -31,55 +31,6 @@ on("chat:message", function (msg) {
             params.runningTarget = parseInt(params.runningTarget);
             params.miscModifier = parseInt(params.miscModifier);
             params.powerLevel = parseInt(params.powerLevel);
-        }
-
-        function getSide() {
-            var sideArray = ["Right", "Left"];
-            return sideArray[Math.floor(Math.random() * sideArray.length)];
-        }
-
-        function getHit(roll, hitNumber) {
-
-            var hitArray = [
-                ["Head", "Head", getSide() + " Arm", "Body", getSide() + " Arm", "Body"],
-                ["Right Arm", getSide() + " Arm", "Body", "Head", "Body", getSide() + " Arm"],
-                ["Left Arm", getSide() + " Arm", "Body", "Head", "Body", getSide() + " Arm"],
-                ["Body", "Body", getSide() + " Arm", "Head", getSide() + " Arm", "Body"],
-                ["Right Leg", getSide() + " Leg", "Body", getSide() + " Arm", "Head", "Body"],
-                ["Left Leg", getSide() + " Leg", "Body", getSide() + " Arm", "Head", "Body"]
-            ];
-
-            var hitSequence;
-            if (roll >= 1 && roll <= 10) {
-                hitSequence = hitArray[0];
-            }
-            else if (roll >= 11 && roll <= 20) {
-                hitSequence = hitArray[1];
-            }
-            else if (roll >= 21 && roll <= 30) {
-                hitSequence = hitArray[2];
-            }
-            else if (roll >= 31 && roll <= 70) {
-                hitSequence = hitArray[3];
-            }
-            else if (roll >= 71 && roll <= 85) {
-                hitSequence = hitArray[4];
-            }
-            else if (roll >= 86 && roll <= 100) {
-                hitSequence = hitArray[5];
-            }
-
-            if (hitNumber >= (hitSequence.length - 1)) {
-                hitNumber = (hitSequence.length - 1);
-            }
-
-            return hitSequence[hitNumber];
-        }
-
-        function reverseRoll(roll) {
-            var singles = (roll % 10);
-            var tens = (roll - singles);
-            return (singles * 10) + (tens / 10);
         }
 
         function findWeaponID() {
@@ -204,50 +155,116 @@ on("chat:message", function (msg) {
         }
 
         function buildDamageButton(sendChatMessage) {
-            sendChatMessage += `\n--+ | [sheetbutton]Attempt Parry?::${params.targetName}::WS[/sheetbutton]`;
-            sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton] [rbutton]Attack Parried:: EXEC_PARRIED[/rbutton]`;
-            sendChatMessage += `\n--X |`;
-            sendChatMessage += `\n--: EXEC_DAMAGE|`;
-            sendChatMessage += `\n--#title | ${params.characterName} damages ${params.targetName}`;
-            params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null;
-            if (params.fullModifier - params.rfRoll <= 0) {
-                // RF is not confirmed so clear the exploding dice modifier
-                params.damageRoll = params.damageRoll.replace("!", "")
-            }
+            sendChatMessage += `\n--?[$HitConfirm] -gt 0|[`;
+            sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetName}::WS[/sheetbutton]`;
+            sendChatMessage += `\n  --+|[rbutton]Apply Damage!::EXEC_DAMAGE[/rbutton] [rbutton]Attack Parried::EXEC_PARRIED[/rbutton]`;
+            sendChatMessage += `\n--]|`
 
-            sendChatMessage += `\n--+Damage Type:|${params.damageType}`;
-            sendChatMessage += `\n--+Penetration:|${params.penetration}`;
-            sendChatMessage += `\n--@vfx_opt|${params.targetID} BloodSplat`;
+            sendChatMessage += `\n--X|`;
+            sendChatMessage += `\n--:EXEC_DAMAGE|`;
+            sendChatMessage += `\n  --#title | ${params.characterName} damages ${params.targetName}`;
+            sendChatMessage += `\n  --?[$RFConfirm.Total] -gt 0|[`;
+            sendChatMessage += `\n     --+Righteous Fury:|Confirmed`;
+            sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
+            sendChatMessage += `\n  --]|[`;
+            sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
+            sendChatMessage += `\n     --&DamageRoll|[&DamageRoll(replace,!,)]`;
+            sendChatMessage += `\n  --]|`;
 
+            sendChatMessage += `\n  --+Damage Type:|${params.damageType}`;
+            sendChatMessage += `\n  --+Penetration:|${params.penetration}`;
+            sendChatMessage += `\n  --@vfx_opt|${params.targetID} BloodSplat`;
+
+            sendChatMessage = addForceDamage(sendChatMessage)
+            sendChatMessage = addHitLocation(sendChatMessage)
+
+            sendChatMessage += `\n  --?[$ForceDamage.Total] -gt 0|[`
+            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _forceDam|[$ForceDamage] _hordeHits|[$HordeHits] _felling|${params.felling}`;
+            sendChatMessage += `\n  --]|[`
+            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _hordeHits|[$HordeHits] _felling|${params.felling}`;
+            sendChatMessage += `\n--]|`
+            sendChatMessage += `\n--X|`;
+            sendChatMessage += `\n--:EXEC_PARRIED|`;
+            sendChatMessage += `\n--#title |  ${params.targetName} parries the attack from ${params.characterName}`;
+            sendChatMessage += `\n--X|`;
+            return sendChatMessage;
+        }
+
+        function addForceDamage(sendChatMessage) {
             if (params.powerLevel > 0) {
-                sendChatMessage += `\n--+Willpower Test:|Yours [[${params.willDos} [${params.willRollMod}]]] vs ${params.targetName}[[${params.tarWillDos} [${params.tarWillRoll}]]]`;
-                sendChatMessage += `\n--=ForceDamage|${params.forceDamage}`;
-                params.forceDamage ? sendChatMessage += `\n--+Force Damage:|[[ [$FD] ${params.forceDamage}]]` : null;
-                if ((((params.willRoll % 11) == 0) && params.powerLevel == 2) || (params.powerLevel == 3)) {
-                    sendChatMessage += `\n--+|[img](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
-                    sendChatMessage += `\n--+PERIL OF THE WARP!:|Will Roll - ${params.willRoll} Psychic Phenomena - [[1d100]]`;
+                if (params.psyRating != "NaN") {
+                    // we have a force weapon and need to calculate extra damage.
+
+                    // Will roll for character
+                    sendChatMessage += `\n  --=WillRoll|1d100`;
+                    sendChatMessage += `\n  --=WillRollTotal|[Will] ${params.willpower} + [Adv] ${params.willpowerAdv} + [Force] ${(5 * params.psyRating)} - [Roll][$WillRoll]`;
+
+                    // Will roll for target
+                    sendChatMessage += `\n  --=TarWillRoll|1d100`;
+                    sendChatMessage += `\n  --=TarWillRollTotal|[Will] ${params.tarWillpower} + [Adv] ${params.tarWillpowerAdv} - [Roll][$TarWillRoll]`;
+
+                    // Calculate Degrees of success
+                    sendChatMessage += `\n  --=Willdos|[$WillRollTotal] / 10 {FLOOR}`;
+                    sendChatMessage += `\n  --=PerilTest|[$WillRoll] % 11`;
+
+                    // Calculate if force damage will be applied
+                    sendChatMessage += `\n  --+${params.characterName} Will Test|[$WillRollTotal]`;
+                    sendChatMessage += `\n  --+${params.targetName} Will Test|[$TarWillRollTotal]`;
+                    sendChatMessage += `\n  --?[$WillRollTotal.Total] -gt 0 -and [$WillRollTotal] -gt [$TarWilLRollTotal]|[`;
+                    sendChatMessage += `\n     --=ForceDamage|[$Willdos]d10`;
+                    sendChatMessage += `\n     --+Force Damage| [$ForceDamage]`;
+                    sendChatMessage += `\n  --]|`;
+
+                    // Check for Unfettered Peril
+                    sendChatMessage += `\n  --?[$PerilTest] -eq 0 -and ${params.powerLevel} -eq 2|[`;
+                    sendChatMessage += `\n    --=PsychicPheno|1d100`;
+                    sendChatMessage += `\n    --+|[img](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
+                    sendChatMessage += `\n    --+PERIL OF THE WARP!:|Will Roll - [$WillRoll] Psychic Phenomena - [$PsychicPheno]`;
+                    sendChatMessage += `\n  --]|`;
+
+                    // Check for Push Peril
+                    sendChatMessage += `\n  --?${params.powerLevel} -eq 3|[`;
+                    sendChatMessage += `\n    --=PsychicPheno|1d100`;
+                    sendChatMessage += `\n    --+|[img](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
+                    sendChatMessage += `\n    --+PERIL OF THE WARP!:|Psychic Phenomena - [$PsychicPheno]`;
+                    sendChatMessage += `\n  --]|`;
                 }
             }
 
-            var awValue = "";
-            for (lcv = 0; lcv < params.hits; lcv++) {
-                var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--=Damage${lcv}|${params.damageRoll}+[[${params.strengthBonus}]]`;
-                sendChatMessage += `\n--+Hit ${lcv + 1}:|${whereHit} for [$Damage${lcv}]`;
-                lcv > 0 ? awValue += ";" : null;
-                awValue += `${whereHit}-[$Damage${lcv}]`;
-            }
+            return sendChatMessage;
+        }
 
-            if (params.forceDamage) {
-                sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _forceDam|[$ForceDamage] _hordeHits|${params.hordeHits} _felling|${params.felling}`;
-            }
-            else {
-                sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits} _felling|${params.felling}`;
-            }
-            sendChatMessage += `\n--X |`;
-            sendChatMessage += `\n--: EXEC_PARRIED|`;
-            sendChatMessage += `\n--#title |  ${params.targetName} parries the attack from ${params.characterName}`;
-            sendChatMessage += `\n--X |`;
+        function addHitLocation(sendChatMessage) {
+            // Flip the roll
+            sendChatMessage += "\n--=rollSingle|[$HitRoll] % 10";
+            sendChatMessage += "\n--=rollTens|[$HitRoll] - [$rollSingle]";
+            sendChatMessage += "\n--=rollTens|[$rollTens] / 10";
+            sendChatMessage += "\n--=rollSingle|[$rollSingle] * 10";
+            sendChatMessage += "\n--=reverse|[$rollTens] + [$rollSingle]";
+
+            //Determine Location
+            sendChatMessage += "\n--?[$reverse] -gt 0 -and [$reverse] -lt 11|[";
+            sendChatMessage += "\n  --&hitLocation|Head";
+            sendChatMessage += "\n--]|";
+            sendChatMessage += "\n--?[$reverse] -gt 10 -and [$reverse] -lt 21|[";
+            sendChatMessage += "\n  --&hitLocation|Right Arm";
+            sendChatMessage += "\n--]|";
+            sendChatMessage += "\n--?[$reverse] -gt 20 -and [$reverse] -lt 31|[";
+            sendChatMessage += "\n  --&hitLocation|Left Arm";
+            sendChatMessage += "\n--]|";
+            sendChatMessage += "\n--?[$reverse] -gt 30 -and [$reverse] -lt 71|[";
+            sendChatMessage += "\n  --&hitLocation|Body";
+            sendChatMessage += "\n--]|";
+            sendChatMessage += "\n--?[$reverse] -gt 70 -and [$reverse] -lt 86|[";
+            sendChatMessage += "\n  --&hitLocation|Right Leg";
+            sendChatMessage += "\n--]|";
+            sendChatMessage += "\n--?[$reverse] -gt 85 -and [$reverse] -lt 101|[";
+            sendChatMessage += "\n  --&hitLocation|Left Leg";
+            sendChatMessage += "\n--]|";
+
+            // Determine Damage
+            sendChatMessage += `\n--=meleeDamage|[&DamageRoll] + ${params.strengthBonus}`;
+            sendChatMessage += "\n--+Hit:|[&hitLocation] for [$meleeDamage]";
             return sendChatMessage;
         }
 
@@ -273,35 +290,6 @@ on("chat:message", function (msg) {
             findHordeDamageBonus();
         }
 
-        params["fullModifier"] = params.weaponSkill + params.weaponSkillAdv + params.aim + params.allOut + params.calledShot + params.charge + params.runningTarget + params.miscModifier + params.magBonus;
-
-        // Determine hits and RF roll.
-        params["hitRoll"] = randomInteger(100);
-        params["rfRoll"] = randomInteger(100);
-        params["hitsTotal"] = 0
-        if ((params.fullModifier - params.hitRoll) > 0) {
-            // we have a hit
-            params["hitsTotal"] = 1
-            // determine how many successes every 10 add in theory another hit
-            params["hitsTotal"] += Math.trunc((params.fullModifier - params.hitRoll) / 10);
-        }
-
-        params["hits"] = params.hitsTotal > 0 ? 1 : 0;
-        params["hordeHits"] = params.hitsTotal > 0 ? (params.hitsTotal > 2 ? Math.trunc(params.hitsTotal / 2) : 1) : 0;
-        params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
-
-        if (params.psyRating != "NaN" && params.hits > 0 && params.powerLevel > 0) {
-            // we have a force weapon and need to calculate extra damage.
-            params["willRoll"] = randomInteger(100);
-            params["willRollMod"] = (params.willpower + params.willpowerAdv + (5 * params.psyRating)) - params.willRoll;
-            params["tarWillRoll"] = (params.tarWillpower + params.tarWillpowerAdv) - randomInteger(100);
-            params["willDos"] = Math.trunc(params.willRollMod / 10);
-            params["tarWillDos"] = Math.trunc(params.tarWillRoll / 10);
-            if (params.willDos > 0 && params.willDos > params.tarWillDos) {
-                params["forceDamage"] = `${params.willDos}d10`;
-            }
-        }
-
         // output parameters to the log
         logMessage(params);
 
@@ -317,6 +305,17 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--#leftsub|${params.weaponName}`;
         sendChatMessage += `\n--#rightsub|${params.weaponSpecial}`;
         sendChatMessage += `\n--+|[img](https://thumbs.gfycat.com/TinyBitesizedKilldeer-size_restricted.gif)`;
+        sendChatMessage += `\n--=HitRoll|1d100`;
+        sendChatMessage += `\n--=RFRoll|1d100`;
+        sendChatMessage += `\n--=HitConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$HitRoll]`;
+        sendChatMessage += `\n--=RFConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$RFRoll]`;
+        sendChatMessage += `\n--?[$HitConfirm.Total] -gt 0|[`
+        sendChatMessage += `\n  --=hitDos|[$HitConfirm] / 10`;
+        sendChatMessage += `\n  --=HordeHits|[$hitDos] / 2 {Floor} + 1`
+        sendChatMessage += `\n--]|[`
+        sendChatMessage += `\n  --=HordeHits|0`
+        sendChatMessage += `\n--]|`
+
         params.aim != 0 ? sendChatMessage += `\n--+Aim Modifier:|${params.aim}` : null;
         params.allOut != 0 ? sendChatMessage += `\n--+All Out Modifier:|${params.allOut}` : null;
         params.calledShot != 0 ? sendChatMessage += `\n--+Called Shot Modifier:|${params.calledShot}` : null;
@@ -324,16 +323,12 @@ on("chat:message", function (msg) {
         params.runningTarget != 0 ? sendChatMessage += `\n--+Running Target Modifier:|${params.runningTarget}` : null;
         params.miscModifier != 0 ? sendChatMessage += `\n--+Misc Modifier:|${params.miscModifier}` : null;
         params.magBonus != 0 ? sendChatMessage += `\n--+Horde Size Modifier:|${params.magBonus}` : null;
-        sendChatMessage += `\n--+Hits:|[[${params.hits} ${params.rollValue}]]`;
-        sendChatMessage += `\n--+Horde Hits:|[[${params.hordeHits}]]`;
-        if (params.hits > 0) {
-            sendChatMessage = buildDamageButton(sendChatMessage);
-        }
+        sendChatMessage += `\n--+Attack Roll:|[$HitConfirm]`;
+
+        sendChatMessage = buildDamageButton(sendChatMessage);
 
         sendChatMessage += scriptCardStop;
         logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
-
-        // TODO - need to update showing of the target rolls for the will power tests.   
     }
 });
