@@ -205,12 +205,15 @@ on("chat:message", function (msg) {
 
                     // Calculate Degrees of success
                     sendChatMessage += `\n  --=Willdos|[$WillRollTotal] / 10 {FLOOR}`;
+                    sendChatMessage += `\n  --?[$Willdos] -eq 0|[`;
+                    sendChatMessage += `\n     --=Willdos| [$Willdos] + 1`;
+                    sendChatMessage += `\n  --]|`;
                     sendChatMessage += `\n  --=PerilTest|[$WillRoll] % 11`;
 
                     // Calculate if force damage will be applied
                     sendChatMessage += `\n  --+${params.characterName} Will Test|[$WillRollTotal]`;
                     sendChatMessage += `\n  --+${params.targetName} Will Test|[$TarWillRollTotal]`;
-                    sendChatMessage += `\n  --?[$WillRollTotal.Total] -gt 0 -and [$WillRollTotal] -gt [$TarWilLRollTotal]|[`;
+                    sendChatMessage += `\n  --?[$WillRollTotal.Total] -ge 0 -and [$WillRollTotal] -gt [$TarWilLRollTotal]|[`;
                     sendChatMessage += `\n     --=ForceDamage|[$Willdos]d10`;
                     sendChatMessage += `\n     --+Force Damage| [$ForceDamage]`;
                     sendChatMessage += `\n  --]|`;
