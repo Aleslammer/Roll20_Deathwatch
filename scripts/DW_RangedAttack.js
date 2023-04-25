@@ -251,6 +251,7 @@ on("chat:message", function (msg) {
                     params.damageRoll = params.damageRoll.replace("!", "!>9")
                 }
             }
+
             getAccurateDamageValues()
 
             sendChatMessage += `\n--+Damage Type:|${params.damageType}`;

@@ -2,7 +2,7 @@
 
 [Script](../scripts/DW_MeleeAttack.js)
 
-This is called from the modified character sheet passing values based on the weapon selected.
+This is called from the modified character sheet passing values based on the weapon selected.  This script will not immediately roll damage.   Instead it will allow you to roll a parry for the target of the attack.   Based on that then you can assign damage.
 
 ## Requirements
 
@@ -11,7 +11,7 @@ This is called from the modified character sheet passing values based on the wea
 
 ## Input
 
-This script is intended to be called from the character sheet.
+This script is intended to be called from the character sheet or a macro.
 
 * **Target** - The target of your melee attack.
 * **All Out** - This indicates if the attack is using the all out ability.   Values are Yes or No.
@@ -31,11 +31,10 @@ The script does a few things of note.
 
 * Determines where and for how much the attacks hit.
 * Will re-roll the Righteous Fury attack for determining if confirmation.
-  * This does not mean that a Righteous Fury has landed.   The damage is rolled after this script is complete and any RF damage must be rolled.
 * Will send hits and damage to the [DW_ApplyWounds](applywounds.md) api script.
 * When using as a force weapon will roll the opposed Will checks for determining force hits and damage.
 * You can enable logging of all sorts of API data by changing the value of the log constant.
-
+* Allows you to roll a parry action with the target of the attack if allowed
 
     ```javascript
     const showLog = false;
@@ -57,4 +56,20 @@ For some scenarios it is needed to add the character token ID to the call.   Thi
 
 ### Standard / Force Attack
 
-![Standard Attack](images/melee.png) ![ForceWeapon Attack](images/melee-force.png)
+![Standard Attack](images/melee.png)
+
+#### Standard Melee Attack Damage
+
+![ForceWeapon Damage](images/melee-damage.png)
+
+### Force Attack
+
+![ForceWeapon Attack](images/melee-force.png)
+
+#### Force Melee Attack Damage
+
+![ForceWeapon Damage](images/melee-force-damage.png)
+
+### Parried Attack
+
+![Parried Attack](images/melee-parry.png)
