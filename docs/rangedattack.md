@@ -72,6 +72,6 @@ For some scenarios it is needed to add the character token ID to the call.   Thi
 
 ![ranged damage](images/ranged-damage.png)
 
-### Ranged Damage Applied
+### Ranged Damage Dodged
 
 ![ranged dodged](images/ranged-dodged.png)
