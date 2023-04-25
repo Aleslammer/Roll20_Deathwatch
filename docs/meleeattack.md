@@ -54,7 +54,7 @@ For some scenarios it is needed to add the character token ID to the call.   Thi
  --charTokenID|@{selected|token_id}
 ```
 
-### Standard / Force Attack
+### Standard Attack
 
 ![Standard Attack](images/melee.png)
 
