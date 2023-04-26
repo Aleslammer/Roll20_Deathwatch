@@ -2,12 +2,13 @@
 
 [Script](../scripts/DW_RangedAttack.js)
 
-This is called from the modified character sheet passing values based on the weapon selected.
+This is called from the modified character sheet passing values based on the weapon selected.  This script will not immediately roll damage.   Instead it will allow you to roll a dodge for the target of the attack.   Based on that then you can assign damage.
 
 ## Requirements
 
-    - PowerCards
+    - ScriptCards
     - DW_ApplyWounds
+    - DW_ReduceAmmo
 
 ## Input
 
@@ -41,8 +42,8 @@ The script does a few things of note.
 * Will automatically reduce the ammo for the weapon.
 * Determines where and for how much the attacks hit.
 * Will re-roll the Righteous Fury attack for determining if confirmation.
-  * This does not mean that a Righteous Fury has landed.   The damage is rolled after this script is complete and any RF damage must be rolled.
 * Will send hits and damage to the [DW_ApplyWounds](applywounds.md) api script.
+* Will send ammo count to the [DW_ReduceAmmo](reduceammo.md) api script.
 * You can enable logging of all sorts of API data by changing the value of the log constant.
 
     ```javascript
@@ -66,3 +67,11 @@ For some scenarios it is needed to add the character token ID to the call.   Thi
 ### Example Attack
 
 ![ranged](images/ranged.png)
+
+### Ranged Damage Applied
+
+![ranged damage](images/ranged-damage.png)
+
+### Ranged Damage Dodged
+
+![ranged dodged](images/ranged-dodged.png)

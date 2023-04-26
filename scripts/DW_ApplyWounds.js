@@ -97,8 +97,8 @@ on("chat:message", function (msg) {
             woundTotal += parseInt(params.forceDam);
         }
 
-        if (params.hordeHits) {
-            logMessage(`Found force damage ${params.hordeHits}`);
+        if (params.hordeHits && tarData.charType == "HORDE") {
+            logMessage(`Found horde force damage ${params.hordeHits}`);
             woundTotal += parseInt(params.hordeHits);
         }
 
