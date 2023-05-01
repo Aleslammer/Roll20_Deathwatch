@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.0.0';
+    var version = '2.0.1';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -164,7 +164,7 @@ on("chat:message", function (msg) {
 
             params["blast"] = 0;
             if (params.weaponSpecial.toLowerCase().includes("blast")) {
-                blast = params.weaponSpecial.toLowerCase().match(/blast\(\d+\)/)
+                blast = params.weaponSpecial.toLowerCase().match(/[Bb]last\s*\(\d+\)/)
                 if (blast != null && blast.length > 0) {
                     logMessage("Blast value found")
                     params.blast = parseInt(blast[0].match(/\d+/))

@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.3';
+    var version = '2.0.1';
     log("-=> DW_ApplyWounds v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -109,7 +109,9 @@ on("chat:message", function (msg) {
             if (woundTotal + tarData.currentWounds > tarData.maxWounds) {
                 var criticalWounds = (woundTotal + tarData.currentWounds) - tarData.maxWounds;
                 sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
-                sendChat("", `!alter --target|${params.tarTokenID} --bar|3 --amount|${criticalWounds}`);
+                if (tarData.charType != "HORDE") {
+                    sendChat("", `!alter --target|${params.tarTokenID} --bar|3 --amount|${criticalWounds}`);
+                }
             }
             else {
                 sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
