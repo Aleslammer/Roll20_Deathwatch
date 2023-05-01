@@ -66,8 +66,11 @@ on("chat:message", function (msg) {
             wounds = wounds > 0 ? wounds : 0;
             logMessage(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}, Wounds:${wounds}`);
             if (tarData.charType == "HORDE") {
-                logMessage("HORDE!")
-                if (params.hellfire == "true") {
+                logMessage("Determine Horde Damage!")
+                if (params.blast > 0) {
+                    return params.blast;
+                }
+                else if (params.hellfire == "true") {
                     return 2;
                 }
                 else {

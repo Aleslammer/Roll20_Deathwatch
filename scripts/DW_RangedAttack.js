@@ -162,6 +162,16 @@ on("chat:message", function (msg) {
                 }
             }
 
+            params["blast"] = 0;
+            if (params.weaponSpecial.toLowerCase().includes("blast")) {
+                blast = params.weaponSpecial.toLowerCase().match(/blast\(\d+\)/)
+                if (blast != null && blast.length > 0) {
+                    logMessage("Blast value found")
+                    params.blast = parseInt(blast[0].match(/\d+/))
+                    logMessage("Blast value found " + params.blast)
+                }
+            }
+
             params["living_ammo"] = false
             if (params.weaponSpecial.toLowerCase().includes("living ammo")) {
                 logMessage("Adding Living Ammo")
@@ -266,7 +276,7 @@ on("chat:message", function (msg) {
                 awValue += `${whereHit}-[$Damage${lcv}]`;
             }
 
-            sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire}`;
+            sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire} _blast|${params.blast}`;
             sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DODGED|`;
