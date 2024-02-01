@@ -244,7 +244,7 @@ on("chat:message", function (msg) {
         }
 
         function buildDamageButton(sendChatMessage) {
-            sendChatMessage += `\n--+ | [sheetbutton]Attempt Dodge?::${params.targetName}::dodge[/sheetbutton]`;
+            sendChatMessage += `\n--+ | [sheetbutton]Attempt Dodge?::${params.targetCharID}::dodge[/sheetbutton]`;
             sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton] [rbutton]Attack Dodged:: EXEC_DODGED[/rbutton]`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DAMAGE|`;
@@ -270,7 +270,7 @@ on("chat:message", function (msg) {
             var awValue = "";
             for (lcv = 0; lcv < params.hits; lcv++) {
                 var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--=Damage${lcv}|${params.damageRoll}`;
+                sendChatMessage += `\n--=Damage${lcv}|[[${params.damageRoll}]]`;
                 sendChatMessage += `\n--+Hit ${lcv + 1}:|${whereHit} for [$Damage${lcv}]`;
                 lcv > 0 ? awValue += ";" : null;
                 awValue += `${whereHit}-[$Damage${lcv}]`;
