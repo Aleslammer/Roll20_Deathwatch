@@ -289,7 +289,7 @@ on("chat:message", function (msg) {
         // Validate the integer arguments
         validateIntArgs();
 
-        // find the weapon id for the weapon provided.
+        // find the weapon id for the weapon provided
         findWeaponID();
 
         // read values off the character sheet
