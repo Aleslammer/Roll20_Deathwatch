@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.0.0';
+    var version = '2.0.1';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -162,6 +162,16 @@ on("chat:message", function (msg) {
                 }
             }
 
+            params["blast"] = 0;
+            if (params.weaponSpecial.toLowerCase().includes("blast")) {
+                blast = params.weaponSpecial.toLowerCase().match(/[Bb]last\s*\(\d+\)/)
+                if (blast != null && blast.length > 0) {
+                    logMessage("Blast value found")
+                    params.blast = parseInt(blast[0].match(/\d+/))
+                    logMessage("Blast value found " + params.blast)
+                }
+            }
+
             params["living_ammo"] = false
             if (params.weaponSpecial.toLowerCase().includes("living ammo")) {
                 logMessage("Adding Living Ammo")
@@ -234,7 +244,7 @@ on("chat:message", function (msg) {
         }
 
         function buildDamageButton(sendChatMessage) {
-            sendChatMessage += `\n--+ | [sheetbutton]Attempt Dodge?::${params.targetName}::dodge[/sheetbutton]`;
+            sendChatMessage += `\n--+ | [sheetbutton]Attempt Dodge?::${params.targetCharID}::dodge[/sheetbutton]`;
             sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton] [rbutton]Attack Dodged:: EXEC_DODGED[/rbutton]`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DAMAGE|`;
@@ -260,13 +270,13 @@ on("chat:message", function (msg) {
             var awValue = "";
             for (lcv = 0; lcv < params.hits; lcv++) {
                 var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--=Damage${lcv}|${params.damageRoll}`;
+                sendChatMessage += `\n--=Damage${lcv}|[[${params.damageRoll}]]`;
                 sendChatMessage += `\n--+Hit ${lcv + 1}:|${whereHit} for [$Damage${lcv}]`;
                 lcv > 0 ? awValue += ";" : null;
                 awValue += `${whereHit}-[$Damage${lcv}]`;
             }
 
-            sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire}`;
+            sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire} _blast|${params.blast}`;
             sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DODGED|`;

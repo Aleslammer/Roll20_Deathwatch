@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.1.0';
+    var version = '2.1.1';
     log("-=> DW_MeleeAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -166,22 +166,24 @@ on("chat:message", function (msg) {
             sendChatMessage += `\n  --?[$RFConfirm.Total] -gt 0|[`;
             sendChatMessage += `\n     --+Righteous Fury:|Confirmed`;
             sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
+            sendChatMessage += `\n     --&Penetration|{& math (2 * ${params.penetration})`;
             sendChatMessage += `\n  --]|[`;
             sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
             sendChatMessage += `\n     --&DamageRoll|[&DamageRoll(replace,!,)]`;
+            sendChatMessage += `\n     --&Penetration|${params.penetration}`;
             sendChatMessage += `\n  --]|`;
 
             sendChatMessage += `\n  --+Damage Type:|${params.damageType}`;
-            sendChatMessage += `\n  --+Penetration:|${params.penetration}`;
+            sendChatMessage += `\n  --+Penetration:|[$Penetration]`;
             sendChatMessage += `\n  --@vfx_opt|${params.targetID} BloodSplat`;
 
             sendChatMessage = addForceDamage(sendChatMessage)
             sendChatMessage = addHitLocation(sendChatMessage)
 
             sendChatMessage += `\n  --?[$ForceDamage.Total] -gt 0|[`
-            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _forceDam|[$ForceDamage] _hordeHits|[$HordeHits] _felling|${params.felling}`;
+            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|[$Penetration] _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _forceDam|[$ForceDamage] _hordeHits|[$HordeHits] _felling|${params.felling}`;
             sendChatMessage += `\n  --]|[`
-            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _hordeHits|[$HordeHits] _felling|${params.felling}`;
+            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|[$Penetration] _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _hordeHits|[$HordeHits] _felling|${params.felling}`;
             sendChatMessage += `\n--]|`
             sendChatMessage += `\n--X|`;
             sendChatMessage += `\n--:EXEC_PARRIED|`;
@@ -307,7 +309,7 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--#subtitleFontColor|#000000`;
         sendChatMessage += `\n--#leftsub|${params.weaponName}`;
         sendChatMessage += `\n--#rightsub|${params.weaponSpecial}`;
-        sendChatMessage += `\n--+|[img](https://thumbs.gfycat.com/TinyBitesizedKilldeer-size_restricted.gif)`;
+        sendChatMessage += `\n--+|[img](https://media.giphy.com/media/8m5dcYxrBAuGK0g2hJ/giphy.gif)`;
         sendChatMessage += `\n--=HitRoll|1d100`;
         sendChatMessage += `\n--=RFRoll|1d100`;
         sendChatMessage += `\n--=HitConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$HitRoll]`;

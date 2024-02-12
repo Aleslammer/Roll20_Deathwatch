@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '0.2.3';
+    var version = '2.0.1';
     log("-=> DW_ApplyWounds v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -66,8 +66,11 @@ on("chat:message", function (msg) {
             wounds = wounds > 0 ? wounds : 0;
             logMessage(`Dam:${damage}, ArmourValue:${armourValue}, TB:${tarData.TB}, Wounds:${wounds}`);
             if (tarData.charType == "HORDE") {
-                logMessage("HORDE!")
-                if (params.hellfire == "true") {
+                logMessage("Determine Horde Damage!")
+                if (params.blast > 0) {
+                    return params.blast;
+                }
+                else if (params.hellfire == "true") {
                     return 2;
                 }
                 else {
@@ -106,7 +109,9 @@ on("chat:message", function (msg) {
             if (woundTotal + tarData.currentWounds > tarData.maxWounds) {
                 var criticalWounds = (woundTotal + tarData.currentWounds) - tarData.maxWounds;
                 sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
-                sendChat("", `!alter --target|${params.tarTokenID} --bar|3 --amount|${criticalWounds}`);
+                if (tarData.charType != "HORDE") {
+                    sendChat("", `!alter --target|${params.tarTokenID} --bar|3 --amount|${criticalWounds}`);
+                }
             }
             else {
                 sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
