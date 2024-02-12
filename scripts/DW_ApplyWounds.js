@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.0.1';
+    var version = '2.0.2';
     log("-=> DW_ApplyWounds v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -79,6 +79,15 @@ on("chat:message", function (msg) {
             }
             else {
                 logMessage("Not HORDE!")
+                if (params.toxic) {
+                    var checkModifier = -5 * wounds;
+                    if (randomInteger(100) > (tarData.tough + checkModifier)) {
+                        toxicDamage = randomInteger(10);
+                        logMessage("Toxic Damaage=" + toxicDamage)
+                        wounds += toxicDamage;
+                    }
+
+                }
                 return wounds;
             }
         }

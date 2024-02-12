@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.0.1';
+    var version = '2.0.2';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -189,6 +189,12 @@ on("chat:message", function (msg) {
                 params.aim += 10
             }
 
+            params["toxic"] = false
+            if (params.weaponSpecial.toLowerCase().includes("toxic")) {
+                logMessage("Adding Toxic")
+                params["toxic"] = true
+            }
+
             var value = findObjs({ type: 'attribute', characterid: params.characterID, name: "charType" })[0];
             if (value) {
                 params["charType"] = value.get('current').toUpperCase();
@@ -276,7 +282,7 @@ on("chat:message", function (msg) {
                 awValue += `${whereHit}-[$Damage${lcv}]`;
             }
 
-            sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire} _blast|${params.blast}`;
+            sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire} _blast|${params.blast} _toxic|${params.toxic}`;
             sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DODGED|`;

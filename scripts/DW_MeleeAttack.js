@@ -154,6 +154,14 @@ on("chat:message", function (msg) {
             }
         }
 
+        function getToxicValue() {
+            params["toxic"] = false;
+            logMessage("Determine Felling")
+            if (params.weaponSpecial.toLowerCase().includes("toxic")) {
+                params.toxic = true
+            }
+        }
+
         function buildDamageButton(sendChatMessage) {
             sendChatMessage += `\n--?[$HitConfirm] -gt 0|[`;
             sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetName}::WS[/sheetbutton]`;
@@ -181,9 +189,9 @@ on("chat:message", function (msg) {
             sendChatMessage = addHitLocation(sendChatMessage)
 
             sendChatMessage += `\n  --?[$ForceDamage.Total] -gt 0|[`
-            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|[$Penetration] _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _forceDam|[$ForceDamage] _hordeHits|[$HordeHits] _felling|${params.felling}`;
+            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|[$Penetration] _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _forceDam|[$ForceDamage] _hordeHits|[$HordeHits] _felling|${params.felling} _toxic|${params.toxic}`;
             sendChatMessage += `\n  --]|[`
-            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|[$Penetration] _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _hordeHits|[$HordeHits] _felling|${params.felling}`;
+            sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|[$Penetration] _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _hordeHits|[$HordeHits] _felling|${params.felling} _toxic|${params.toxic}`;
             sendChatMessage += `\n--]|`
             sendChatMessage += `\n--X|`;
             sendChatMessage += `\n--:EXEC_PARRIED|`;
@@ -289,6 +297,9 @@ on("chat:message", function (msg) {
 
         // Determine if felling is in the damage
         getFellingValue();
+
+        // Determine if weapon is toxic
+        getToxicValue();
 
         if (params.charType == "HORDE") {
             // character is a horde find out any bonus to damage
