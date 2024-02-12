@@ -329,7 +329,12 @@ on("chat:message", function (msg) {
 
         // Determine hits and RF roll.
         params["hitRoll"] = randomInteger(100);
-        params["rfRoll"] = randomInteger(100);
+        if (params.charType == "PLAYER") {
+            params["rfRoll"] = randomInteger(100);
+        }
+        else {
+            params["rfRoll"] = 10000;
+        }
 
         // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
         params["rejam"] = params.reliable ? randomInteger(10) : 10;

@@ -130,6 +130,11 @@ on("chat:message", function (msg) {
                 params["tarWillpowerAdv"] = parseInt(getAttrByName(params.targetCharID, "advanceWP"));
             }
 
+            params.rfNonPCMod = 10000;
+            if (params["charType"] == "PLAYER") {
+                params.rfNonPCMod = 0;
+            }
+
         }
 
         function findHordeDamageBonus() {
@@ -156,9 +161,17 @@ on("chat:message", function (msg) {
 
         function getToxicValue() {
             params["toxic"] = false;
-            logMessage("Determine Felling")
+            logMessage("Determine Toxic")
             if (params.weaponSpecial.toLowerCase().includes("toxic")) {
                 params.toxic = true
+            }
+        }
+
+        function getRazorSharp() {
+            params["razor_sharp"] = false;
+            logMessage("Determine Razor Sharp")
+            if (params.weaponSpecial.toLowerCase().includes("razor_sharp")) {
+                params.razor_sharp = true
             }
         }
 
@@ -174,11 +187,15 @@ on("chat:message", function (msg) {
             sendChatMessage += `\n  --?[$RFConfirm.Total] -gt 0|[`;
             sendChatMessage += `\n     --+Righteous Fury:|Confirmed`;
             sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
-            sendChatMessage += `\n     --&Penetration|{& math (2 * ${params.penetration})`;
             sendChatMessage += `\n  --]|[`;
             sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
             sendChatMessage += `\n     --&DamageRoll|[&DamageRoll(replace,!,)]`;
-            sendChatMessage += `\n     --&Penetration|${params.penetration}`;
+            sendChatMessage += `\n  --]|`;
+
+            sendChatMessage += `\n  --?[$hitDos] -gt 1 -and true -eq ${params.razor_sharp}|[`;
+            sendChatMessage += `\n     --=Penetration|2 * ${params.penetration}`;
+            sendChatMessage += `\n  --]|[`;
+            sendChatMessage += `\n     --=Penetration|${params.penetration}`;
             sendChatMessage += `\n  --]|`;
 
             sendChatMessage += `\n  --+Damage Type:|${params.damageType}`;
@@ -301,6 +318,9 @@ on("chat:message", function (msg) {
         // Determine if weapon is toxic
         getToxicValue();
 
+        // determine if weapon is razor sharp
+        getRazorSharp();
+
         if (params.charType == "HORDE") {
             // character is a horde find out any bonus to damage
             findHordeDamageBonus();
@@ -324,7 +344,7 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--=HitRoll|1d100`;
         sendChatMessage += `\n--=RFRoll|1d100`;
         sendChatMessage += `\n--=HitConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$HitRoll]`;
-        sendChatMessage += `\n--=RFConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$RFRoll]`;
+        sendChatMessage += `\n--=RFConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$RFRoll] - ${params.rfNonPCMod}`;
         sendChatMessage += `\n--?[$HitConfirm.Total] -gt 0|[`
         sendChatMessage += `\n  --=hitDos|[$HitConfirm] / 10`;
         sendChatMessage += `\n  --=HordeHits|[$hitDos] / 2 {Floor} + 1`
