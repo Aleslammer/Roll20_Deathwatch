@@ -78,6 +78,10 @@ on("chat:message", function (msg) {
             var player_obj = getObj("player", msg.playerid);
             params["bgColor"] = player_obj.get("color");
 
+            getWeaponQualityBasic("razor_sharp", params);
+            getWeaponQualityBasic("toxic", params);
+            getWeaponQualityInteger("felling", params);
+
             var value = findObjs({ type: 'attribute', characterid: params.characterID, name: "charType" })[0];
             if (value) {
                 params["charType"] = value.get('current').toUpperCase();
@@ -144,34 +148,6 @@ on("chat:message", function (msg) {
                 var charMag = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
                 params["hordeBonus"] = Math.trunc(charMag / 10) + "d10";
                 params.damageRoll = params.damageRoll + " + " + params.hordeBonus;
-            }
-        }
-
-        function getFellingValue() {
-            params["felling"] = 0;
-            logMessage("Determine Felling")
-            if (params.weaponSpecial.toLowerCase().includes("felling")) {
-                felling = params.weaponSpecial.toLowerCase().match(/felling\(\d+\)/)
-                if (felling != null && felling.length > 0) {
-                    logMessage("Felling value found")
-                    params["felling"] = parseInt(felling[0].match(/\d+/))
-                }
-            }
-        }
-
-        function getToxicValue() {
-            params["toxic"] = false;
-            logMessage("Determine Toxic")
-            if (params.weaponSpecial.toLowerCase().includes("toxic")) {
-                params.toxic = true
-            }
-        }
-
-        function getRazorSharp() {
-            params["razor_sharp"] = false;
-            logMessage("Determine Razor Sharp")
-            if (params.weaponSpecial.toLowerCase().includes("razor_sharp")) {
-                params.razor_sharp = true
             }
         }
 
@@ -298,6 +274,24 @@ on("chat:message", function (msg) {
             return sendChatMessage;
         }
 
+        function getWeaponQualityBasic(qualityName, params) {
+            params[qualityName] = false
+            if (params.weaponSpecial.includes(qualityName)) {
+                logMessage("Found " + qualityName)
+                params[qualityName] = true
+            }
+        }
+
+        function getWeaponQualityInteger(qualityName, params) {
+            params[qualityName] = 0;
+            pattern = qualityName + '\\s*\\(\\d+\\)';
+            value = params.weaponSpecial.match(pattern);
+            if (value != null && value.length > 0) {
+                params[qualityName] = parseInt(value[0].match(/\d+/))
+                logMessage(qualityName + " has value " + params[qualityName])
+            }
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -311,15 +305,6 @@ on("chat:message", function (msg) {
 
         // read values off the character sheet
         readCharacterSheet();
-
-        // Determine if felling is in the damage
-        getFellingValue();
-
-        // Determine if weapon is toxic
-        getToxicValue();
-
-        // determine if weapon is razor sharp
-        getRazorSharp();
 
         if (params.charType == "HORDE") {
             // character is a horde find out any bonus to damage
