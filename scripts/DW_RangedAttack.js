@@ -201,21 +201,18 @@ on("chat:message", function (msg) {
         function getWeaponQualityBasic(qualityName, params) {
             params[qualityName] = false
             if (params.weaponSpecial.includes(qualityName)) {
-                logMessage("Adding " + qualityName)
+                logMessage("Found " + qualityName)
                 params[qualityName] = true
             }
         }
 
         function getWeaponQualityInteger(qualityName, params) {
             params[qualityName] = 0;
-            if (params.weaponSpecial.includes(qualityName)) {
-                pattern = qualityName + '\\s*\\(\\d+\\)';
-                value = params.weaponSpecial.match(pattern);
-                if (value != null && value.length > 0) {
-                    logMessage(qualityName + " value found")
-                    params[qualityName] = parseInt(value[0].match(/\d+/))
-                    logMessage(qualityName + " value found " + params[qualityName])
-                }
+            pattern = qualityName + '\\s*\\(\\d+\\)';
+            value = params.weaponSpecial.match(pattern);
+            if (value != null && value.length > 0) {
+                params[qualityName] = parseInt(value[0].match(/\d+/))
+                logMessage(qualityName + " has value " + params[qualityName])
             }
         }
 
