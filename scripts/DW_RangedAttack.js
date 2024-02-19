@@ -1,10 +1,10 @@
 on("ready", function () {
-    var version = '2.0.2';
+    var version = '2.1.0';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
     if (msg.type == "api" && msg.content.indexOf("!DW_RangedAttack") == 0) {
-        const showLog = false;
+        const showLog = true;
 
         var params = {}
 
@@ -123,7 +123,7 @@ on("chat:message", function (msg) {
         }
 
         function getAccurateDamageValues() {
-            if (params.aim > 0 && params.weapon_accurate > 0 && params.autoFire == 0) {
+            if (params.aim > 0 && params.accurate && params.autoFire == 0) {
                 logMessage("Determine extra accurate damage.")
                 if (params.hitsTotal >= 4) {
                     logMessage("4 or more successes.")
@@ -141,7 +141,7 @@ on("chat:message", function (msg) {
             params["ballisticSkill"] = parseInt(getAttrByName(params.characterID, "BallisticSkill"));
             params["ballisticSkillAdv"] = parseInt(getAttrByName(params.characterID, "advanceBS"));
             params["weaponName"] = getWeaponValue("rangedweaponname", true);
-            params["weaponSpecial"] = getWeaponValue("rangedweaponspecial", false);
+            params["weaponSpecial"] = getWeaponValue("rangedweaponspecial", false).toLowerCase();
             params["damageRoll"] = getWeaponValue("rangedweapondamage", true);
             params["damageType"] = getWeaponValue("rangedweapontype", true);
             params["currentClip"] = parseInt(getWeaponValue("rangedweaponclip", true));
@@ -149,50 +149,21 @@ on("chat:message", function (msg) {
             params["charType"] = "NPC";
             var player_obj = getObj("player", msg.playerid);
             params["bgColor"] = player_obj.get("color");
-            params["weapon_accurate"] = 0
-            params["hellfire"] = false
-            if (params.weaponSpecial.toLowerCase().includes("hellfire")) {
-                params.hellfire = true
+
+            getWeaponQualityBasic("accurate", params);
+            getWeaponQualityBasic("hellfire", params);
+            getWeaponQualityBasic("kraken", params);
+            getWeaponQualityBasic("toxic", params);
+            getWeaponQualityBasic("reliable", params);
+            getWeaponQualityBasic("living_ammo", params);
+            getWeaponQualityInteger("blast", params)
+
+            if (params.accurate && params.aim > 0) {
+                processAccurateQuality(params)
             }
 
-            if (params.weaponSpecial.toLowerCase().includes("kraken")) {
-                logMessage("Adding kraken penetration")
-                if (params.penetration < 8) {
-                    params.penetration = 8
-                }
-            }
-
-            params["blast"] = 0;
-            if (params.weaponSpecial.toLowerCase().includes("blast")) {
-                blast = params.weaponSpecial.toLowerCase().match(/[Bb]last\s*\(\d+\)/)
-                if (blast != null && blast.length > 0) {
-                    logMessage("Blast value found")
-                    params.blast = parseInt(blast[0].match(/\d+/))
-                    logMessage("Blast value found " + params.blast)
-                }
-            }
-
-            params["living_ammo"] = false
-            if (params.weaponSpecial.toLowerCase().includes("living ammo")) {
-                logMessage("Adding Living Ammo")
-                params.living_ammo = true
-            }
-
-            params["reliable"] = false
-            if (params.weaponSpecial.toLowerCase().includes("reliable")) {
-                params.reliable = true
-            }
-
-            if (params.weaponSpecial.toLowerCase().includes("accurate") && params.aim > 0) {
-                logMessage("Adding Accurate bonus")
-                params["weapon_accurate"] = 1
-                params.aim += 10
-            }
-
-            params["toxic"] = false
-            if (params.weaponSpecial.toLowerCase().includes("toxic")) {
-                logMessage("Adding Toxic")
-                params["toxic"] = true
+            if (params.kraken) {
+                processKrakenQuality(params)
             }
 
             var value = findObjs({ type: 'attribute', characterid: params.characterID, name: "charType" })[0];
@@ -223,6 +194,27 @@ on("chat:message", function (msg) {
                             params.magBonus = 30;
                         }
                     }
+                }
+            }
+        }
+
+        function getWeaponQualityBasic(qualityName, params) {
+            params[qualityName] = false
+            if (params.weaponSpecial.includes(qualityName)) {
+                logMessage("Adding " + qualityName)
+                params[qualityName] = true
+            }
+        }
+
+        function getWeaponQualityInteger(qualityName, params) {
+            params[qualityName] = 0;
+            if (params.weaponSpecial.includes(qualityName)) {
+                pattern = qualityName + '\\s*\\(\\d+\\)';
+                value = params.weaponSpecial.match(pattern);
+                if (value != null && value.length > 0) {
+                    logMessage(qualityName + " value found")
+                    params[qualityName] = parseInt(value[0].match(/\d+/))
+                    logMessage(qualityName + " value found " + params[qualityName])
                 }
             }
         }
@@ -290,6 +282,18 @@ on("chat:message", function (msg) {
             sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
             sendChatMessage += `\n--X |`;
             return sendChatMessage;
+        }
+
+        function processAccurateQuality(params) {
+            logMessage("Adding Accurate bonus")
+            params.aim += 10
+        }
+
+        function processKrakenQuality(params) {
+            logMessage("Adding kraken penetration")
+            if (params.penetration < 8) {
+                params.penetration = 8
+            }
         }
 
         args = msg.content.split("--");

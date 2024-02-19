@@ -79,7 +79,7 @@ on("chat:message", function (msg) {
             }
             else {
                 logMessage("Not HORDE!")
-                if (params.toxic) {
+                if (params.toxic == "true") {
                     var checkModifier = -5 * wounds;
                     if (randomInteger(100) > (tarData.tough + checkModifier)) {
                         toxicDamage = randomInteger(10);
