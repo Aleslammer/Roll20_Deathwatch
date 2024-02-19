@@ -157,6 +157,7 @@ on("chat:message", function (msg) {
             getWeaponQualityBasic("reliable", params);
             getWeaponQualityBasic("living_ammo", params);
             getWeaponQualityInteger("blast", params)
+            getWeaponQualityInteger("felling", params)
 
             if (params.accurate && params.aim > 0) {
                 processAccurateQuality(params)
@@ -226,18 +227,6 @@ on("chat:message", function (msg) {
             }
         }
 
-        function getFellingValue() {
-            params["felling"] = 0;
-            logMessage("Determine Felling")
-            if (params.weaponSpecial.toLowerCase().includes("felling")) {
-                felling = params.weaponSpecial.toLowerCase().match(/felling\(\d+\)/)
-                if (felling != null && felling.length > 0) {
-                    logMessage("Felling value found")
-                    params["felling"] = parseInt(felling[0].match(/\d+/))
-                }
-            }
-        }
-
         function buildDamageButton(sendChatMessage) {
             sendChatMessage += `\n--+ | [sheetbutton]Attempt Dodge?::${params.targetCharID}::dodge[/sheetbutton]`;
             sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton] [rbutton]Attack Dodged:: EXEC_DODGED[/rbutton]`;
@@ -272,11 +261,11 @@ on("chat:message", function (msg) {
             }
 
             sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire} _blast|${params.blast} _toxic|${params.toxic}`;
-            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
+            sendChatMessage = addReduceAmmo(sendChatMessage, params)
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DODGED|`;
             sendChatMessage += `\n--#title |  ${params.targetName} dodges attack from ${params.characterName}`;
-            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
+            sendChatMessage = addReduceAmmo(sendChatMessage, params)
             sendChatMessage += `\n--X |`;
             return sendChatMessage;
         }
@@ -293,6 +282,76 @@ on("chat:message", function (msg) {
             }
         }
 
+        function getChatHeader(sendChatMessage) {
+            sendChatMessage += `\n--#title|${params.characterName} is firing at ${params.targetName}!`;
+            sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
+            sendChatMessage += `\n--#subtitleFontSize|10px`;
+            sendChatMessage += `\n--#subtitleFontColor|#000000`;
+            sendChatMessage += `\n--#leftsub|${params.weaponName}`;
+            sendChatMessage += `\n--#rightsub|${params.weaponSpecial}`;
+
+            return sendChatMessage
+        }
+
+        function getJamSection(sendChatMessage, params) {
+            params["isJammed"] = false
+            if (params.hitRoll > params.jamTarget && params.rejam == 10) {
+                sendChatMessage += `\n--+|[img](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
+                sendChatMessage += `\n--+JAMMED:|(${params.hitRoll})`
+                sendChatMessage = addReduceAmmo(sendChatMessage, params, 1)
+                params.isJammed = true
+            }
+
+            return sendChatMessage;
+        }
+
+        function getClipAmount(sendChatMessage, params) {
+            params["enoughAmmo"] = true
+            if (params.currentClip < params.shells) {
+                sendChatMessage += `\n--+Not Enough Ammo`;
+                sendChatMessage += `\n--+Current Clip:|${params.currentClip}`;
+                sendChatMessage += `\n--+Shells Needed:|${params.shells}`;
+                params.enoughAmmo = false
+            }
+
+            return sendChatMessage;
+        }
+
+        function getNormalAttack(sendChatMessage, params) {
+            if (params.isjammed || !params.enoughAmmo) {
+                return sendChatMessage
+            }
+
+            sendChatMessage += `\n--+|[img](https://media.giphy.com/media/llD9NuPzxOCuzmnbMq/giphy.gif)`;
+            sendChatMessage += `\n--+Skill:|${params.ballisticSkill}`;
+            sendChatMessage += `\n--+Skill Advance:|${params.ballisticSkillAdv}`;
+            params.range != 0 ? sendChatMessage += `\n--+Range Modifier:|${params.range}` : null;
+            params.aim != 0 ? sendChatMessage += `\n--+Aim Modifier:|${params.aim}` : null;
+            params.autoFire != 0 ? sendChatMessage += `\n--+Rate of Fire Modifier:|${params.autoFire}` : null;
+            params.calledShot != 0 ? sendChatMessage += `\n--+Called Shot Modifier:|${params.calledShot}` : null;
+            params.runningTarget != 0 ? sendChatMessage += `\n--+Running Target Modifier:|${params.runningTarget}` : null;
+            params.miscModifier != 0 ? sendChatMessage += `\n--+Misc Modifier:|${params.miscModifier}` : null;
+            params.magBonus != 0 ? sendChatMessage += `\n--+Horde Size Modifier:|${params.magBonus}` : null;
+            sendChatMessage += `\n--+Total Modifier:|${params.fullModifier}`;
+            sendChatMessage += `\n--+HitRoll:|${params.hitRoll}`;
+            sendChatMessage += `\n--+Hits:|${params.hits}`;
+            sendChatMessage += `\n--+Shells Used:|${params.shells}`;
+            if (params.hits > 0) {
+                sendChatMessage = buildDamageButton(sendChatMessage)
+            }
+            else {
+                // even if no hits we reduce ammo
+                sendChatMessage = addReduceAmmo(sendChatMessage, params)
+            }
+
+            return sendChatMessage
+        }
+
+        function addReduceAmmo(sendChatMessage, params, shells = params.shells) {
+            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${shells}`;
+            return sendChatMessage;
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -306,9 +365,6 @@ on("chat:message", function (msg) {
 
         // read values off the character sheet
         readCharacterSheet();
-
-        // Determine if felling is in the damage
-        getFellingValue();
 
         // Now determine the rof values.
         determineRof();
@@ -353,52 +409,13 @@ on("chat:message", function (msg) {
         // output parameters to the log
         logMessage(params);
 
-        var sendChatMessage = "";
-        const scriptCardStart = "!script {{";
-        const scriptCardStop = "\n}}";
+        var sendChatMessage = "!script {{";
+        sendChatMessage = getChatHeader(sendChatMessage)
+        sendChatMessage = getClipAmount(sendChatMessage, params)
+        sendChatMessage = getJamSection(sendChatMessage, params)
+        sendChatMessage = getNormalAttack(sendChatMessage, params)
+        sendChatMessage += "\n}}";
 
-        sendChatMessage += scriptCardStart;
-        sendChatMessage += `\n--#title|${params.characterName} is firing at ${params.targetName}!`;
-        sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
-        sendChatMessage += `\n--#subtitleFontSize|10px`;
-        sendChatMessage += `\n--#subtitleFontColor|#000000`;
-        sendChatMessage += `\n--#leftsub|${params.weaponName}`;
-        sendChatMessage += `\n--#rightsub|${params.weaponSpecial}`;
-        if (params.hitRoll > params.jamTarget && params.rejam == 10) {
-            sendChatMessage += `\n--+|[img](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
-            sendChatMessage += `\n--+JAMMED:|(${params.hitRoll})`
-            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|1`;
-        }
-        else if (params.currentClip < params.shells) {
-            sendChatMessage += `\n--+Not Enough Ammo`;
-            sendChatMessage += `\n--+Current Clip:|${params.currentClip}`;
-            sendChatMessage += `\n--+Shells Needed:|${params.shells}`;
-        }
-        else {
-            sendChatMessage += `\n--+|[img](https://media.giphy.com/media/llD9NuPzxOCuzmnbMq/giphy.gif)`;
-            sendChatMessage += `\n--+Skill:|${params.ballisticSkill}`;
-            sendChatMessage += `\n--+Skill Advance:|${params.ballisticSkillAdv}`;
-            params.range != 0 ? sendChatMessage += `\n--+Range Modifier:|${params.range}` : null;
-            params.aim != 0 ? sendChatMessage += `\n--+Aim Modifier:|${params.aim}` : null;
-            params.autoFire != 0 ? sendChatMessage += `\n--+Rate of Fire Modifier:|${params.autoFire}` : null;
-            params.calledShot != 0 ? sendChatMessage += `\n--+Called Shot Modifier:|${params.calledShot}` : null;
-            params.runningTarget != 0 ? sendChatMessage += `\n--+Running Target Modifier:|${params.runningTarget}` : null;
-            params.miscModifier != 0 ? sendChatMessage += `\n--+Misc Modifier:|${params.miscModifier}` : null;
-            params.magBonus != 0 ? sendChatMessage += `\n--+Horde Size Modifier:|${params.magBonus}` : null;
-            sendChatMessage += `\n--+Total Modifier:|${params.fullModifier}`;
-            sendChatMessage += `\n--+HitRoll:|${params.hitRoll}`;
-            sendChatMessage += `\n--+Hits:|${params.hits}`;
-            sendChatMessage += `\n--+Shells Used:|${params.shells}`;
-            if (params.hits > 0) {
-                sendChatMessage = buildDamageButton(sendChatMessage)
-            }
-            else {
-                // even if no hits we reduce ammo
-                sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
-            }
-        }
-
-        sendChatMessage += scriptCardStop;
         logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
