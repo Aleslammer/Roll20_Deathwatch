@@ -78,6 +78,10 @@ on("chat:message", function (msg) {
             var player_obj = getObj("player", msg.playerid);
             params["bgColor"] = player_obj.get("color");
 
+            getWeaponQualityBasic("razor_sharp", params);
+            getWeaponQualityBasic("toxic", params);
+            getWeaponQualityInteger("felling", params);
+
             var value = findObjs({ type: 'attribute', characterid: params.characterID, name: "charType" })[0];
             if (value) {
                 params["charType"] = value.get('current').toUpperCase();
@@ -147,44 +151,16 @@ on("chat:message", function (msg) {
             }
         }
 
-        function getFellingValue() {
-            params["felling"] = 0;
-            logMessage("Determine Felling")
-            if (params.weaponSpecial.toLowerCase().includes("felling")) {
-                felling = params.weaponSpecial.toLowerCase().match(/felling\(\d+\)/)
-                if (felling != null && felling.length > 0) {
-                    logMessage("Felling value found")
-                    params["felling"] = parseInt(felling[0].match(/\d+/))
-                }
-            }
-        }
-
-        function getToxicValue() {
-            params["toxic"] = false;
-            logMessage("Determine Toxic")
-            if (params.weaponSpecial.toLowerCase().includes("toxic")) {
-                params.toxic = true
-            }
-        }
-
-        function getRazorSharp() {
-            params["razor_sharp"] = false;
-            logMessage("Determine Razor Sharp")
-            if (params.weaponSpecial.toLowerCase().includes("razor_sharp")) {
-                params.razor_sharp = true
-            }
-        }
-
         function buildDamageButton(sendChatMessage) {
             sendChatMessage += `\n--?[$HitConfirm] -gt 0|[`;
-            sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetName}::WS[/sheetbutton]`;
+            sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetID}::WS[/sheetbutton]`;
             sendChatMessage += `\n  --+|[rbutton]Apply Damage!::EXEC_DAMAGE[/rbutton] [rbutton]Attack Parried::EXEC_PARRIED[/rbutton]`;
             sendChatMessage += `\n--]|`
 
             sendChatMessage += `\n--X|`;
             sendChatMessage += `\n--:EXEC_DAMAGE|`;
             sendChatMessage += `\n  --#title | ${params.characterName} damages ${params.targetName}`;
-            sendChatMessage += `\n  --?[$RFConfirm.Total] -gt 0|[`;
+            sendChatMessage += `\n  --?[$RFConfirm.Total] -ge 0|[`;
             sendChatMessage += `\n     --+Righteous Fury:|Confirmed`;
             sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
             sendChatMessage += `\n  --]|[`;
@@ -298,6 +274,24 @@ on("chat:message", function (msg) {
             return sendChatMessage;
         }
 
+        function getWeaponQualityBasic(qualityName, params) {
+            params[qualityName] = false
+            if (params.weaponSpecial.includes(qualityName)) {
+                logMessage("Found " + qualityName)
+                params[qualityName] = true
+            }
+        }
+
+        function getWeaponQualityInteger(qualityName, params) {
+            params[qualityName] = 0;
+            pattern = qualityName + '\\s*\\(\\d+\\)';
+            value = params.weaponSpecial.match(pattern);
+            if (value != null && value.length > 0) {
+                params[qualityName] = parseInt(value[0].match(/\d+/))
+                logMessage(qualityName + " has value " + params[qualityName])
+            }
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -311,15 +305,6 @@ on("chat:message", function (msg) {
 
         // read values off the character sheet
         readCharacterSheet();
-
-        // Determine if felling is in the damage
-        getFellingValue();
-
-        // Determine if weapon is toxic
-        getToxicValue();
-
-        // determine if weapon is razor sharp
-        getRazorSharp();
 
         if (params.charType == "HORDE") {
             // character is a horde find out any bonus to damage
@@ -345,7 +330,7 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--=RFRoll|1d100`;
         sendChatMessage += `\n--=HitConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$HitRoll]`;
         sendChatMessage += `\n--=RFConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$RFRoll] - ${params.rfNonPCMod}`;
-        sendChatMessage += `\n--?[$HitConfirm.Total] -gt 0|[`
+        sendChatMessage += `\n--?[$HitConfirm.Total] -ge 0|[`
         sendChatMessage += `\n  --=hitDos|[$HitConfirm] / 10`;
         sendChatMessage += `\n  --=HordeHits|[$hitDos] / 2 {Floor} + 1`
         sendChatMessage += `\n--]|[`

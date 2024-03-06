@@ -1,10 +1,10 @@
 on("ready", function () {
-    var version = '2.0.2';
+    var version = '2.1.0';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
     if (msg.type == "api" && msg.content.indexOf("!DW_RangedAttack") == 0) {
-        const showLog = false;
+        const showLog = true;
 
         var params = {}
 
@@ -123,7 +123,7 @@ on("chat:message", function (msg) {
         }
 
         function getAccurateDamageValues() {
-            if (params.aim > 0 && params.weapon_accurate > 0 && params.autoFire == 0) {
+            if (params.aim > 0 && params.accurate && params.autoFire == 0) {
                 logMessage("Determine extra accurate damage.")
                 if (params.hitsTotal >= 4) {
                     logMessage("4 or more successes.")
@@ -141,7 +141,7 @@ on("chat:message", function (msg) {
             params["ballisticSkill"] = parseInt(getAttrByName(params.characterID, "BallisticSkill"));
             params["ballisticSkillAdv"] = parseInt(getAttrByName(params.characterID, "advanceBS"));
             params["weaponName"] = getWeaponValue("rangedweaponname", true);
-            params["weaponSpecial"] = getWeaponValue("rangedweaponspecial", false);
+            params["weaponSpecial"] = getWeaponValue("rangedweaponspecial", false).toLowerCase();
             params["damageRoll"] = getWeaponValue("rangedweapondamage", true);
             params["damageType"] = getWeaponValue("rangedweapontype", true);
             params["currentClip"] = parseInt(getWeaponValue("rangedweaponclip", true));
@@ -149,50 +149,22 @@ on("chat:message", function (msg) {
             params["charType"] = "NPC";
             var player_obj = getObj("player", msg.playerid);
             params["bgColor"] = player_obj.get("color");
-            params["weapon_accurate"] = 0
-            params["hellfire"] = false
-            if (params.weaponSpecial.toLowerCase().includes("hellfire")) {
-                params.hellfire = true
+
+            getWeaponQualityBasic("accurate", params);
+            getWeaponQualityBasic("hellfire", params);
+            getWeaponQualityBasic("kraken", params);
+            getWeaponQualityBasic("toxic", params);
+            getWeaponQualityBasic("reliable", params);
+            getWeaponQualityBasic("living_ammo", params);
+            getWeaponQualityInteger("blast", params)
+            getWeaponQualityInteger("felling", params)
+
+            if (params.accurate && params.aim > 0) {
+                processAccurateQuality(params)
             }
 
-            if (params.weaponSpecial.toLowerCase().includes("kraken")) {
-                logMessage("Adding kraken penetration")
-                if (params.penetration < 8) {
-                    params.penetration = 8
-                }
-            }
-
-            params["blast"] = 0;
-            if (params.weaponSpecial.toLowerCase().includes("blast")) {
-                blast = params.weaponSpecial.toLowerCase().match(/[Bb]last\s*\(\d+\)/)
-                if (blast != null && blast.length > 0) {
-                    logMessage("Blast value found")
-                    params.blast = parseInt(blast[0].match(/\d+/))
-                    logMessage("Blast value found " + params.blast)
-                }
-            }
-
-            params["living_ammo"] = false
-            if (params.weaponSpecial.toLowerCase().includes("living ammo")) {
-                logMessage("Adding Living Ammo")
-                params.living_ammo = true
-            }
-
-            params["reliable"] = false
-            if (params.weaponSpecial.toLowerCase().includes("reliable")) {
-                params.reliable = true
-            }
-
-            if (params.weaponSpecial.toLowerCase().includes("accurate") && params.aim > 0) {
-                logMessage("Adding Accurate bonus")
-                params["weapon_accurate"] = 1
-                params.aim += 10
-            }
-
-            params["toxic"] = false
-            if (params.weaponSpecial.toLowerCase().includes("toxic")) {
-                logMessage("Adding Toxic")
-                params["toxic"] = true
+            if (params.kraken) {
+                processKrakenQuality(params)
             }
 
             var value = findObjs({ type: 'attribute', characterid: params.characterID, name: "charType" })[0];
@@ -227,6 +199,24 @@ on("chat:message", function (msg) {
             }
         }
 
+        function getWeaponQualityBasic(qualityName, params) {
+            params[qualityName] = false
+            if (params.weaponSpecial.includes(qualityName)) {
+                logMessage("Found " + qualityName)
+                params[qualityName] = true
+            }
+        }
+
+        function getWeaponQualityInteger(qualityName, params) {
+            params[qualityName] = 0;
+            pattern = qualityName + '\\s*\\(\\d+\\)';
+            value = params.weaponSpecial.match(pattern);
+            if (value != null && value.length > 0) {
+                params[qualityName] = parseInt(value[0].match(/\d+/))
+                logMessage(qualityName + " has value " + params[qualityName])
+            }
+        }
+
         function findHordeDamageBonus() {
             logMessage("Finding Horde Damage Bonus" + params.charTokenID);
             var token = findObjs({ type: 'graphic', _id: params.charTokenID })[0];
@@ -237,25 +227,13 @@ on("chat:message", function (msg) {
             }
         }
 
-        function getFellingValue() {
-            params["felling"] = 0;
-            logMessage("Determine Felling")
-            if (params.weaponSpecial.toLowerCase().includes("felling")) {
-                felling = params.weaponSpecial.toLowerCase().match(/felling\(\d+\)/)
-                if (felling != null && felling.length > 0) {
-                    logMessage("Felling value found")
-                    params["felling"] = parseInt(felling[0].match(/\d+/))
-                }
-            }
-        }
-
         function buildDamageButton(sendChatMessage) {
             sendChatMessage += `\n--+ | [sheetbutton]Attempt Dodge?::${params.targetCharID}::dodge[/sheetbutton]`;
             sendChatMessage += `\n--+ | [rbutton]Apply Damage!:: EXEC_DAMAGE[/rbutton] [rbutton]Attack Dodged:: EXEC_DODGED[/rbutton]`;
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DAMAGE|`;
             sendChatMessage += `\n--#title | ${params.characterName} damages ${params.targetName}`;
-            params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null;
+            params.fullModifier - params.rfRoll >= 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null;
             if (params.fullModifier - params.rfRoll <= 0) {
                 // RF is not confirmed so clear the exploding dice modifier
                 params.damageRoll = params.damageRoll.replace("!", "")
@@ -283,12 +261,94 @@ on("chat:message", function (msg) {
             }
 
             sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire} _blast|${params.blast} _toxic|${params.toxic}`;
-            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
+            sendChatMessage = addReduceAmmo(sendChatMessage, params)
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DODGED|`;
             sendChatMessage += `\n--#title |  ${params.targetName} dodges attack from ${params.characterName}`;
-            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
+            sendChatMessage = addReduceAmmo(sendChatMessage, params)
             sendChatMessage += `\n--X |`;
+            return sendChatMessage;
+        }
+
+        function processAccurateQuality(params) {
+            logMessage("Adding Accurate bonus")
+            params.aim += 10
+        }
+
+        function processKrakenQuality(params) {
+            logMessage("Adding kraken penetration")
+            if (params.penetration < 8) {
+                params.penetration = 8
+            }
+        }
+
+        function getChatHeader(sendChatMessage) {
+            sendChatMessage += `\n--#title|${params.characterName} is firing at ${params.targetName}!`;
+            sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
+            sendChatMessage += `\n--#subtitleFontSize|10px`;
+            sendChatMessage += `\n--#subtitleFontColor|#000000`;
+            sendChatMessage += `\n--#leftsub|${params.weaponName}`;
+            sendChatMessage += `\n--#rightsub|${params.weaponSpecial}`;
+
+            return sendChatMessage
+        }
+
+        function getJamSection(sendChatMessage, params) {
+            params["isJammed"] = false
+            if (params.hitRoll > params.jamTarget && params.rejam == 10) {
+                sendChatMessage += `\n--+|[img](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
+                sendChatMessage += `\n--+JAMMED:|(${params.hitRoll})`
+                sendChatMessage = addReduceAmmo(sendChatMessage, params, 1)
+                params.isJammed = true
+            }
+
+            return sendChatMessage;
+        }
+
+        function getClipAmount(sendChatMessage, params) {
+            params["enoughAmmo"] = true
+            if (params.currentClip < params.shells) {
+                sendChatMessage += `\n--+Not Enough Ammo`;
+                sendChatMessage += `\n--+Current Clip:|${params.currentClip}`;
+                sendChatMessage += `\n--+Shells Needed:|${params.shells}`;
+                params.enoughAmmo = false
+            }
+
+            return sendChatMessage;
+        }
+
+        function getNormalAttack(sendChatMessage, params) {
+            if (params.isjammed || !params.enoughAmmo) {
+                return sendChatMessage
+            }
+
+            sendChatMessage += `\n--+|[img](https://media.giphy.com/media/llD9NuPzxOCuzmnbMq/giphy.gif)`;
+            sendChatMessage += `\n--+Skill:|${params.ballisticSkill}`;
+            sendChatMessage += `\n--+Skill Advance:|${params.ballisticSkillAdv}`;
+            params.range != 0 ? sendChatMessage += `\n--+Range Modifier:|${params.range}` : null;
+            params.aim != 0 ? sendChatMessage += `\n--+Aim Modifier:|${params.aim}` : null;
+            params.autoFire != 0 ? sendChatMessage += `\n--+Rate of Fire Modifier:|${params.autoFire}` : null;
+            params.calledShot != 0 ? sendChatMessage += `\n--+Called Shot Modifier:|${params.calledShot}` : null;
+            params.runningTarget != 0 ? sendChatMessage += `\n--+Running Target Modifier:|${params.runningTarget}` : null;
+            params.miscModifier != 0 ? sendChatMessage += `\n--+Misc Modifier:|${params.miscModifier}` : null;
+            params.magBonus != 0 ? sendChatMessage += `\n--+Horde Size Modifier:|${params.magBonus}` : null;
+            sendChatMessage += `\n--+Total Modifier:|${params.fullModifier}`;
+            sendChatMessage += `\n--+HitRoll:|${params.hitRoll}`;
+            sendChatMessage += `\n--+Hits:|${params.hits}`;
+            sendChatMessage += `\n--+Shells Used:|${params.shells}`;
+            if (params.hits > 0) {
+                sendChatMessage = buildDamageButton(sendChatMessage)
+            }
+            else {
+                // even if no hits we reduce ammo
+                sendChatMessage = addReduceAmmo(sendChatMessage, params)
+            }
+
+            return sendChatMessage
+        }
+
+        function addReduceAmmo(sendChatMessage, params, shells = params.shells) {
+            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${shells}`;
             return sendChatMessage;
         }
 
@@ -305,9 +365,6 @@ on("chat:message", function (msg) {
 
         // read values off the character sheet
         readCharacterSheet();
-
-        // Determine if felling is in the damage
-        getFellingValue();
 
         // Now determine the rof values.
         determineRof();
@@ -339,7 +396,7 @@ on("chat:message", function (msg) {
         // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
         params["rejam"] = params.reliable ? randomInteger(10) : 10;
         params["hitsTotal"] = 0;
-        if ((params.fullModifier - params.hitRoll) > 0) {
+        if ((params.fullModifier - params.hitRoll) >= 0) {
             // we have a hit
             params["hitsTotal"] = 1;
             // determine how many successes every 10 add in theory another hit
@@ -352,52 +409,13 @@ on("chat:message", function (msg) {
         // output parameters to the log
         logMessage(params);
 
-        var sendChatMessage = "";
-        const scriptCardStart = "!script {{";
-        const scriptCardStop = "\n}}";
+        var sendChatMessage = "!script {{";
+        sendChatMessage = getChatHeader(sendChatMessage)
+        sendChatMessage = getClipAmount(sendChatMessage, params)
+        sendChatMessage = getJamSection(sendChatMessage, params)
+        sendChatMessage = getNormalAttack(sendChatMessage, params)
+        sendChatMessage += "\n}}";
 
-        sendChatMessage += scriptCardStart;
-        sendChatMessage += `\n--#title|${params.characterName} is firing at ${params.targetName}!`;
-        sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
-        sendChatMessage += `\n--#subtitleFontSize|10px`;
-        sendChatMessage += `\n--#subtitleFontColor|#000000`;
-        sendChatMessage += `\n--#leftsub|${params.weaponName}`;
-        sendChatMessage += `\n--#rightsub|${params.weaponSpecial}`;
-        if (params.hitRoll > params.jamTarget && params.rejam == 10) {
-            sendChatMessage += `\n--+|[img](https://media.giphy.com/media/3o6Mb4LzCRqyjIJ4TC/giphy.gif)`;
-            sendChatMessage += `\n--+JAMMED:|(${params.hitRoll})`
-            sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|1`;
-        }
-        else if (params.currentClip < params.shells) {
-            sendChatMessage += `\n--+Not Enough Ammo`;
-            sendChatMessage += `\n--+Current Clip:|${params.currentClip}`;
-            sendChatMessage += `\n--+Shells Needed:|${params.shells}`;
-        }
-        else {
-            sendChatMessage += `\n--+|[img](https://media.giphy.com/media/llD9NuPzxOCuzmnbMq/giphy.gif)`;
-            sendChatMessage += `\n--+Skill:|${params.ballisticSkill}`;
-            sendChatMessage += `\n--+Skill Advance:|${params.ballisticSkillAdv}`;
-            params.range != 0 ? sendChatMessage += `\n--+Range Modifier:|${params.range}` : null;
-            params.aim != 0 ? sendChatMessage += `\n--+Aim Modifier:|${params.aim}` : null;
-            params.autoFire != 0 ? sendChatMessage += `\n--+Rate of Fire Modifier:|${params.autoFire}` : null;
-            params.calledShot != 0 ? sendChatMessage += `\n--+Called Shot Modifier:|${params.calledShot}` : null;
-            params.runningTarget != 0 ? sendChatMessage += `\n--+Running Target Modifier:|${params.runningTarget}` : null;
-            params.miscModifier != 0 ? sendChatMessage += `\n--+Misc Modifier:|${params.miscModifier}` : null;
-            params.magBonus != 0 ? sendChatMessage += `\n--+Horde Size Modifier:|${params.magBonus}` : null;
-            sendChatMessage += `\n--+Total Modifier:|${params.fullModifier}`;
-            sendChatMessage += `\n--+HitRoll:|${params.hitRoll}`;
-            sendChatMessage += `\n--+Hits:|${params.hits}`;
-            sendChatMessage += `\n--+Shells Used:|${params.shells}`;
-            if (params.hits > 0) {
-                sendChatMessage = buildDamageButton(sendChatMessage)
-            }
-            else {
-                // even if no hits we reduce ammo
-                sendChatMessage += `\n--@DW_ReduceAmmo|_characterName|${params.characterName} _characterID|${params.characterID} _weaponID|${params.weaponID} _amount|${params.shells}`;
-            }
-        }
-
-        sendChatMessage += scriptCardStop;
         logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
