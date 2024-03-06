@@ -233,7 +233,7 @@ on("chat:message", function (msg) {
             sendChatMessage += `\n--X |`;
             sendChatMessage += `\n--: EXEC_DAMAGE|`;
             sendChatMessage += `\n--#title | ${params.characterName} damages ${params.targetName}`;
-            params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null;
+            params.fullModifier - params.rfRoll >= 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null;
             if (params.fullModifier - params.rfRoll <= 0) {
                 // RF is not confirmed so clear the exploding dice modifier
                 params.damageRoll = params.damageRoll.replace("!", "")
@@ -396,7 +396,7 @@ on("chat:message", function (msg) {
         // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
         params["rejam"] = params.reliable ? randomInteger(10) : 10;
         params["hitsTotal"] = 0;
-        if ((params.fullModifier - params.hitRoll) > 0) {
+        if ((params.fullModifier - params.hitRoll) >= 0) {
             // we have a hit
             params["hitsTotal"] = 1;
             // determine how many successes every 10 add in theory another hit

@@ -160,7 +160,7 @@ on("chat:message", function (msg) {
             sendChatMessage += `\n--X|`;
             sendChatMessage += `\n--:EXEC_DAMAGE|`;
             sendChatMessage += `\n  --#title | ${params.characterName} damages ${params.targetName}`;
-            sendChatMessage += `\n  --?[$RFConfirm.Total] -gt 0|[`;
+            sendChatMessage += `\n  --?[$RFConfirm.Total] -ge 0|[`;
             sendChatMessage += `\n     --+Righteous Fury:|Confirmed`;
             sendChatMessage += `\n     --&DamageRoll|${params.damageRoll}`;
             sendChatMessage += `\n  --]|[`;
@@ -330,7 +330,7 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--=RFRoll|1d100`;
         sendChatMessage += `\n--=HitConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$HitRoll]`;
         sendChatMessage += `\n--=RFConfirm|[WS]${params.weaponSkill} + [WSadv]${params.weaponSkillAdv} + [Aim]${params.aim} + [AllOut]${params.allOut} + [Called]${params.calledShot} + [Charge]${params.charge} + [Running]${params.runningTarget} + [Misc]${params.miscModifier} + [HordeMag]${params.magBonus} - [Roll][$RFRoll] - ${params.rfNonPCMod}`;
-        sendChatMessage += `\n--?[$HitConfirm.Total] -gt 0|[`
+        sendChatMessage += `\n--?[$HitConfirm.Total] -ge 0|[`
         sendChatMessage += `\n  --=hitDos|[$HitConfirm] / 10`;
         sendChatMessage += `\n  --=HordeHits|[$hitDos] / 2 {Floor} + 1`
         sendChatMessage += `\n--]|[`
