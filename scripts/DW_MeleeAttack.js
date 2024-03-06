@@ -153,7 +153,7 @@ on("chat:message", function (msg) {
 
         function buildDamageButton(sendChatMessage) {
             sendChatMessage += `\n--?[$HitConfirm] -gt 0|[`;
-            sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetName}::WS[/sheetbutton]`;
+            sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetID}::WS[/sheetbutton]`;
             sendChatMessage += `\n  --+|[rbutton]Apply Damage!::EXEC_DAMAGE[/rbutton] [rbutton]Attack Parried::EXEC_PARRIED[/rbutton]`;
             sendChatMessage += `\n--]|`
 
