@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.0.2';
+    var version = '2.0.3';
     log("-=> DW_ApplyWounds v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -104,7 +104,7 @@ on("chat:message", function (msg) {
         var message = "";
         var woundTotal = 0;
         hits.forEach(hit => woundTotal += determineWounds(hit.split("-")));
-        if (params.forceDam) {
+        if (params.forceDam && tarData.charType != "HORDE") {
             logMessage(`Found force damage ${params.forceDam}`);
             woundTotal += parseInt(params.forceDam);
         }
