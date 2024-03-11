@@ -1,10 +1,10 @@
 on("ready", function () {
-    var version = '2.1.0';
+    var version = '2.1.1';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
     if (msg.type == "api" && msg.content.indexOf("!DW_RangedAttack") == 0) {
-        const showLog = true;
+        const showLog = false;
 
         var params = {}
 
@@ -308,10 +308,16 @@ on("chat:message", function (msg) {
         function getClipAmount(sendChatMessage, params) {
             params["enoughAmmo"] = true
             if (params.currentClip < params.shells) {
-                sendChatMessage += `\n--+Not Enough Ammo`;
-                sendChatMessage += `\n--+Current Clip:|${params.currentClip}`;
-                sendChatMessage += `\n--+Shells Needed:|${params.shells}`;
-                params.enoughAmmo = false
+                if (params.currentClip > 0) {
+                    sendChatMessage += `\n--+Not Enough Ammo:|Has only ${params.currentClip} in clip.`;
+                    params.shells = params.currentClip
+                }
+                else {
+                    params.enoughAmmo = false
+                    sendChatMessage += `\n--+Not Enough Ammo`;
+                    sendChatMessage += `\n--+Current Clip:|${params.currentClip}`;
+                    sendChatMessage += `\n--+Shells Needed:|${params.shells}`;
+                }
             }
 
             return sendChatMessage;
@@ -352,6 +358,42 @@ on("chat:message", function (msg) {
             return sendChatMessage;
         }
 
+        function determineHitsAndJam(params) {
+
+            params["fullModifier"] = params.ballisticSkill + params.ballisticSkillAdv + params.range + params.aim + params.autoFire + params.calledShot + params.runningTarget + params.miscModifier + params.magBonus;
+
+            // Determine the Jam target.   When autofire jams are more frequent
+            params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
+            if (params.living_ammo) {
+                // if no jam is set then this weapon cannot be jammed.
+                // Set the jam target to 110 (Which cannot be rolled)
+                params.jamTarget = 110
+            }
+
+            // Determine hits and RF roll.
+            params["hitRoll"] = randomInteger(100);
+            if (params.charType == "PLAYER") {
+                params["rfRoll"] = randomInteger(100);
+            }
+            else {
+                params["rfRoll"] = 10000;
+            }
+
+            // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
+            params["rejam"] = params.reliable ? randomInteger(10) : 10;
+            params["hitsTotal"] = 0;
+            if ((params.fullModifier - params.hitRoll) >= 0) {
+                // we have a hit
+                params["hitsTotal"] = 1;
+                // determine how many successes every 10 add in theory another hit
+                params["hitsTotal"] += Math.trunc((params.fullModifier - params.hitRoll) / 10);
+            }
+
+            params["hits"] = params.hitsTotal > 0 ? (params.hitsTotal > params.shells ? params.shells : params.hitsTotal) : 0;
+            params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
+
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -374,44 +416,13 @@ on("chat:message", function (msg) {
             findHordeDamageBonus();
         }
 
-        params["fullModifier"] = params.ballisticSkill + params.ballisticSkillAdv + params.range + params.aim + params.autoFire + params.calledShot + params.runningTarget + params.miscModifier + params.magBonus;
-
-        // Determine the Jam target.   When autofire jams are more frequent
-        params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
-        if (params.living_ammo) {
-            // if no jam is set then this weapon cannot be jammed.
-            // Set the jam target to 110 (Which cannot be rolled)
-            params.jamTarget = 110
-        }
-
-        // Determine hits and RF roll.
-        params["hitRoll"] = randomInteger(100);
-        if (params.charType == "PLAYER") {
-            params["rfRoll"] = randomInteger(100);
-        }
-        else {
-            params["rfRoll"] = 10000;
-        }
-
-        // if weapon is reliable then roll 1d10 for jam otherwise assume 10 for jam.
-        params["rejam"] = params.reliable ? randomInteger(10) : 10;
-        params["hitsTotal"] = 0;
-        if ((params.fullModifier - params.hitRoll) >= 0) {
-            // we have a hit
-            params["hitsTotal"] = 1;
-            // determine how many successes every 10 add in theory another hit
-            params["hitsTotal"] += Math.trunc((params.fullModifier - params.hitRoll) / 10);
-        }
-
-        params["hits"] = params.hitsTotal > 0 ? (params.hitsTotal > params.shells ? params.shells : params.hitsTotal) : 0;
-        params["rollValue"] = `[${params.fullModifier} Mods - ${params.hitRoll} Hit Roll]`
-
         // output parameters to the log
         logMessage(params);
 
         var sendChatMessage = "!script {{";
         sendChatMessage = getChatHeader(sendChatMessage)
         sendChatMessage = getClipAmount(sendChatMessage, params)
+        determineHitsAndJam(params)
         sendChatMessage = getJamSection(sendChatMessage, params)
         sendChatMessage = getNormalAttack(sendChatMessage, params)
         sendChatMessage += "\n}}";
