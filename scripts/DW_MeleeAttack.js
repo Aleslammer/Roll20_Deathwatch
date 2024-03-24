@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.1.1';
+    var version = '2.2.0';
     log("-=> DW_MeleeAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -153,8 +153,8 @@ on("chat:message", function (msg) {
 
         function buildDamageButton(sendChatMessage) {
             sendChatMessage += `\n--?[$HitConfirm] -gt 0|[`;
-            sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetID}::WS[/sheetbutton]`;
-            sendChatMessage += `\n  --+|[rbutton]Apply Damage!::EXEC_DAMAGE[/rbutton] [rbutton]Attack Parried::EXEC_PARRIED[/rbutton]`;
+            sendChatMessage += `\n  --+|[sheetbutton]Attempt Parry?::${params.targetID}::WS[/sheetbutton] [sheetbutton]Attempt Dodge?::${params.targetID}::dodge[/sheetbutton]`;
+            sendChatMessage += `\n  --+|[rbutton]Apply Damage!::EXEC_DAMAGE[/rbutton] [rbutton]Attack Parried::EXEC_PARRIED[/rbutton] [rbutton]Attack Dodged::EXEC_DODGED[/rbutton]`;
             sendChatMessage += `\n--]|`
 
             sendChatMessage += `\n--X|`;
@@ -186,6 +186,9 @@ on("chat:message", function (msg) {
             sendChatMessage += `\n  --]|[`
             sendChatMessage += `\n    --@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|[$Penetration] _hits|[&hitLocation]-[$meleeDamage] _alterBar|1 _hordeHits|[$HordeHits] _felling|${params.felling} _toxic|${params.toxic}`;
             sendChatMessage += `\n--]|`
+            sendChatMessage += `\n--X|`;
+            sendChatMessage += `\n--:EXEC_DODGED|`;
+            sendChatMessage += `\n--#title |  ${params.targetName} dodges attack from ${params.characterName}`;
             sendChatMessage += `\n--X|`;
             sendChatMessage += `\n--:EXEC_PARRIED|`;
             sendChatMessage += `\n--#title |  ${params.targetName} parries the attack from ${params.characterName}`;
