@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.1.1';
+    var version = '2.1.2';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
