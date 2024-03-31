@@ -218,12 +218,18 @@ on("chat:message", function (msg) {
         }
 
         function findHordeDamageBonus() {
-            logMessage("Finding Horde Damage Bonus" + params.charTokenID);
-            var token = findObjs({ type: 'graphic', _id: params.charTokenID })[0];
+            logMessage("Finding Horde Damage Bonus" + params.selectedTokenID);
+            var token = findObjs({ type: 'graphic', _id: params.selectedTokenID })[0];
             if (token) {
                 var charMag = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
-                params["hordeBonus"] = Math.trunc(charMag / 10) + "d10";
+                var bonusDice = Math.trunc(charMag / 10)
+                if (bonusDice > 2) {
+                    bonusDice = 2
+                }
+                params["hordeBonus"] = bonusDice + "d10";
                 params.damageRoll = params.damageRoll + " + " + params.hordeBonus;
+
+                logMessage("Horde Damage Bonus = " + params.damageRoll)
             }
         }
 
