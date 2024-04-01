@@ -224,6 +224,7 @@ on("chat:message", function (msg) {
             logMessage("Finding Horde Damage Bonus" + params.selectedTokenID);
             var token = findObjs({ type: 'graphic', _id: params.selectedTokenID })[0];
             if (token) {
+                params.characterName = token.get("name")
                 var charMag = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
                 var bonusDice = Math.trunc(charMag / 10)
                 if (bonusDice > 2) {
@@ -373,7 +374,7 @@ on("chat:message", function (msg) {
 
             // Determine the Jam target.   When autofire jams are more frequent
             params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
-            if (params.living_ammo) {
+            if (params["living ammo"]) {
                 // if no jam is set then this weapon cannot be jammed.
                 // Set the jam target to 110 (Which cannot be rolled)
                 params.jamTarget = 110
