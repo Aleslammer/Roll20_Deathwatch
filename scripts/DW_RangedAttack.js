@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.1.1';
+    var version = '2.2.1';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -24,7 +24,6 @@ on("chat:message", function (msg) {
         }
 
         function validateIntArgs() {
-            params.range = parseInt(params.range);
             params.aim = parseInt(params.aim);
             params.autoFire = parseInt(params.autoFire);
             params.calledShot = parseInt(params.calledShot);
@@ -146,6 +145,7 @@ on("chat:message", function (msg) {
             params["damageType"] = getWeaponValue("rangedweapontype", true);
             params["currentClip"] = parseInt(getWeaponValue("rangedweaponclip", true));
             params["penetration"] = parseInt(getWeaponValue("rangedweaponpen", true));
+            params["weaponRange"] = parseInt(getWeaponValue("rangedweaponrange", true));
             params["charType"] = "NPC";
             var player_obj = getObj("player", msg.playerid);
             params["bgColor"] = player_obj.get("color");
@@ -155,7 +155,7 @@ on("chat:message", function (msg) {
             getWeaponQualityBasic("kraken", params);
             getWeaponQualityBasic("toxic", params);
             getWeaponQualityBasic("reliable", params);
-            getWeaponQualityBasic("living_ammo", params);
+            getWeaponQualityBasic("living ammo", params);
             getWeaponQualityInteger("blast", params)
             getWeaponQualityInteger("felling", params)
 
@@ -181,6 +181,9 @@ on("chat:message", function (msg) {
                 if (value) {
                     params["tarType"] = value.get('current').toUpperCase();
                     if (params.tarType == "HORDE") {
+                        var sourceToken = findObjs({ type: 'graphic', _id: params.selectedTokenID })[0];
+
+                        params.characterName = sourceToken.get("name")
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
                         if (params.tarMag >= 120) {
                             params.magBonus = 60;
@@ -218,12 +221,19 @@ on("chat:message", function (msg) {
         }
 
         function findHordeDamageBonus() {
-            logMessage("Finding Horde Damage Bonus" + params.charTokenID);
-            var token = findObjs({ type: 'graphic', _id: params.charTokenID })[0];
+            logMessage("Finding Horde Damage Bonus" + params.selectedTokenID);
+            var token = findObjs({ type: 'graphic', _id: params.selectedTokenID })[0];
             if (token) {
+                params.characterName = token.get("name")
                 var charMag = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
-                params["hordeBonus"] = Math.trunc(charMag / 10) + "d10";
+                var bonusDice = Math.trunc(charMag / 10)
+                if (bonusDice > 2) {
+                    bonusDice = 2
+                }
+                params["hordeBonus"] = bonusDice + "d10";
                 params.damageRoll = params.damageRoll + " + " + params.hordeBonus;
+
+                logMessage("Horde Damage Bonus = " + params.damageRoll)
             }
         }
 
@@ -324,10 +334,6 @@ on("chat:message", function (msg) {
         }
 
         function getNormalAttack(sendChatMessage, params) {
-            if (params.isjammed || !params.enoughAmmo) {
-                return sendChatMessage
-            }
-
             sendChatMessage += `\n--+|[img](https://media.giphy.com/media/llD9NuPzxOCuzmnbMq/giphy.gif)`;
             sendChatMessage += `\n--+Skill:|${params.ballisticSkill}`;
             sendChatMessage += `\n--+Skill Advance:|${params.ballisticSkillAdv}`;
@@ -364,7 +370,7 @@ on("chat:message", function (msg) {
 
             // Determine the Jam target.   When autofire jams are more frequent
             params["jamTarget"] = params.autoFire > 0 ? 94 : 96;
-            if (params.living_ammo) {
+            if (params["living ammo"]) {
                 // if no jam is set then this weapon cannot be jammed.
                 // Set the jam target to 110 (Which cannot be rolled)
                 params.jamTarget = 110
@@ -394,6 +400,79 @@ on("chat:message", function (msg) {
 
         }
 
+        function getTokenDistance(token1, token2) {
+            if (token1.get('pageid') != token2.get('pageid')) {
+                logMessage('Cannot measure distance between tokens on different pages');
+                return;
+            }
+
+            var distX_pixels = Math.abs(token1.get('left') - token2.get('left'));
+            var distY_pixels = Math.abs(token1.get('top') - token2.get('top'));
+
+            // 70px = 1 unit
+            var distX = distX_pixels / 70;
+            var distY = distY_pixels / 70;
+            var distance;
+
+            var page = getObj('page', token1.get('pageid'));
+            var measurement = page.get('diagonaltype');
+
+            switch (measurement) {
+                default:
+                case 'pythagorean':
+                    // Euclidean distance, that thing they teach you in school
+                    distance = Math.sqrt(distX * distX + distY * distY);
+                    break;
+                case 'foure':
+                    // Distance as used in D&D 4e
+                    distance = Math.max(distX, distY);
+                    break;
+                case 'threefive':
+                    // Distance as used in D&D 3.5 and Pathfinder
+                    distance = 1.5 * Math.min(distX, distY) + Math.abs(distX - distY);
+                    break;
+                case 'manhattan':
+                    // Manhattan distance
+                    distance = distX + distY;
+                    break;
+            }
+
+            var gridUnitSize = page.get('snapping_increment'); // units per grid square
+            var unitScale = page.get('scale_number'); // scale for 1 unit, eg 1 unit = 5ft
+            var unit = page.get('scale_units'); // unit, eg ft or km
+
+            return {
+                distance: distance, // Distance between token1 and token2 in units
+                squares: distance / gridUnitSize, // Distance between token1 and token2 in squares
+                measurement: '' + (unitScale * distance / gridUnitSize) + unit // Ruler measurement as a string
+            };
+        }
+
+        function getRange(params) {
+            var targetToken = findObjs({ type: 'graphic', _id: params.targetID })[0];
+            var sourceToken = findObjs({ type: 'graphic', _id: params.selectedTokenID })[0];
+
+            var distance = getTokenDistance(sourceToken, targetToken)
+            params["range"] = 0;
+
+            if (distance.distance <= 2) {
+                // Point Blank Range
+                params.range = 30;
+            }
+            else if (distance.distance < (.5 * params.weaponRange)) {
+                // Short Blank Range
+                params.range = 10;
+            }
+            else if (distance.distance >= (3 * params.weaponRange)) {
+                // Extreme Blank Range
+                params.range = -30;
+            }
+            else if (distance.distance >= (2 * params.weaponRange)) {
+                // Long Blank Range
+                params.range = -10;
+            }
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -411,6 +490,9 @@ on("chat:message", function (msg) {
         // Now determine the rof values.
         determineRof();
 
+        // Determine Range
+        getRange(params)
+
         if (params.charType == "HORDE") {
             // character is a horde find out any bonus to damage
             findHordeDamageBonus();
@@ -424,7 +506,11 @@ on("chat:message", function (msg) {
         sendChatMessage = getClipAmount(sendChatMessage, params)
         determineHitsAndJam(params)
         sendChatMessage = getJamSection(sendChatMessage, params)
-        sendChatMessage = getNormalAttack(sendChatMessage, params)
+
+        if (!params.isJammed && params.enoughAmmo) {
+            sendChatMessage = getNormalAttack(sendChatMessage, params)
+        }
+
         sendChatMessage += "\n}}";
 
         logMessage(sendChatMessage);
