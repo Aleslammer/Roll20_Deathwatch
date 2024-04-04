@@ -1,5 +1,5 @@
 on("ready", function () {
-    var version = '2.2.0';
+    var version = '2.2.1';
     log("-=> DW_RangedAttack v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
@@ -334,10 +334,6 @@ on("chat:message", function (msg) {
         }
 
         function getNormalAttack(sendChatMessage, params) {
-            if (params.isjammed || !params.enoughAmmo) {
-                return sendChatMessage
-            }
-
             sendChatMessage += `\n--+|[img](https://media.giphy.com/media/llD9NuPzxOCuzmnbMq/giphy.gif)`;
             sendChatMessage += `\n--+Skill:|${params.ballisticSkill}`;
             sendChatMessage += `\n--+Skill Advance:|${params.ballisticSkillAdv}`;
@@ -510,7 +506,11 @@ on("chat:message", function (msg) {
         sendChatMessage = getClipAmount(sendChatMessage, params)
         determineHitsAndJam(params)
         sendChatMessage = getJamSection(sendChatMessage, params)
-        sendChatMessage = getNormalAttack(sendChatMessage, params)
+
+        if (!params.isJammed && params.enoughAmmo) {
+            sendChatMessage = getNormalAttack(sendChatMessage, params)
+        }
+
         sendChatMessage += "\n}}";
 
         logMessage(sendChatMessage);
