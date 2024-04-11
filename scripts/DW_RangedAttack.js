@@ -265,7 +265,7 @@ on("chat:message", function (msg) {
 
             sendChatMessage += `\n--+Damage Type:|${params.damageType}`;
             sendChatMessage += `\n--+Penetration:|${params.penetration}`;
-            sendChatMessage += `\n--@vfx_opt|${params.targetID} BloodSplat`;
+            sendChatMessage += `\n--vtoken|${params.targetID} BloodSplat`;
             var awValue = "";
             for (lcv = 0; lcv < params.hits; lcv++) {
                 var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
@@ -474,15 +474,15 @@ on("chat:message", function (msg) {
                 params.range = 30;
             }
             else if (distance.distance < (.5 * params.weaponRange)) {
-                // Short Blank Range
+                // Short Range
                 params.range = 10;
             }
             else if (distance.distance >= (3 * params.weaponRange)) {
-                // Extreme Blank Range
+                // Extreme Range
                 params.range = -30;
             }
             else if (distance.distance >= (2 * params.weaponRange)) {
-                // Long Blank Range
+                // Long Range
                 params.range = -10;
             }
         }
