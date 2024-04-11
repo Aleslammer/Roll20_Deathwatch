@@ -158,6 +158,7 @@ on("chat:message", function (msg) {
             getWeaponQualityBasic("living ammo", params);
             getWeaponQualityInteger("blast", params)
             getWeaponQualityInteger("felling", params)
+            getWeaponQualityBasic("metal_storm", params)
 
             if (params.accurate && params.aim > 0) {
                 processAccurateQuality(params)
@@ -165,6 +166,10 @@ on("chat:message", function (msg) {
 
             if (params.kraken) {
                 processKrakenQuality(params)
+            }
+
+            if (params.metal_storm) {
+                processMetalStormQuality(params)
             }
 
             var value = findObjs({ type: 'attribute', characterid: params.characterID, name: "charType" })[0];
@@ -289,6 +294,15 @@ on("chat:message", function (msg) {
             logMessage("Adding kraken penetration")
             if (params.penetration < 8) {
                 params.penetration = 8
+            }
+        }
+
+        function processMetalStormQuality(params) {
+            logMessage("Adding metal storm")
+            params["damageRoll"] = params["damageRoll"] + " - 2"
+            params.blast = 2
+            if (params.penetration > 2) {
+                params.penetration = params.penetration - 2
             }
         }
 
