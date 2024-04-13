@@ -277,7 +277,7 @@ on("chat:message", function (msg) {
             }
 
             params.hits > 0 ? sendChatMessage += `\n--+Penetration:|${params.penetration}` : null;
-            sendChatMessage += `\n--vbetweentokens|${params.selectedTokenID} ${params.targetID} beam-fire`
+            sendChatMessage += `\n--vtoken|${params.targetID} bomb-fire`
 
             var awValue = "";
             for (lcv = 0; lcv < params.hits; lcv++) {
