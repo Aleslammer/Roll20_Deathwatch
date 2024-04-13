@@ -1,10 +1,10 @@
 on("ready", function () {
-    var version = '0.2.4';
+    var version = '1.0.0';
     log("-=> Psy_Avenger v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
     if (msg.type == "api" && msg.content.indexOf("!Psy_Avenger") == 0) {
-        const showLog = false;
+        const showLog = true;
 
         var params = {}
 
@@ -114,6 +114,9 @@ on("chat:message", function (msg) {
             params["tarAgRoll"] = (params.tarAgility + params.tarAgilityAdv) - randomInteger(100);
             params["tarAgilityDos"] = Math.trunc(params.tarAgRoll / 10);
 
+            var player_obj = getObj("player", msg.playerid);
+            params["bgColor"] = player_obj.get("color");
+
             var token = findObjs({ type: 'graphic', _id: params.targetID })[0];
             params["targetName"] = "Something";
             if (token) {
@@ -122,6 +125,9 @@ on("chat:message", function (msg) {
                 if (value) {
                     params["tarType"] = value.get('current').toUpperCase();
                     if (params.tarType == "HORDE") {
+                        // Flamers do more damage to horde
+                        params["hordeHits"] = Math.ceil(params.powerRange / 4.0) + randomInteger(5) - 1
+
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
                         if (params.tarMag >= 120) {
                             params.magBonus = 60;
@@ -140,6 +146,160 @@ on("chat:message", function (msg) {
             }
         }
 
+        function getRange(params) {
+            var targetToken = findObjs({ type: 'graphic', _id: params.targetID })[0];
+            var sourceToken = findObjs({ type: 'graphic', _id: params.selectedTokenID })[0];
+
+
+
+            var distance = getTokenDistance(sourceToken, targetToken)
+            params["range"] = 0;
+
+            if (distance.distance <= 2) {
+                // Point Blank Range
+                params.range = 30;
+            }
+            else if (distance.distance < (.5 * params.powerRange)) {
+                // Short Range
+                params.range = 10;
+            }
+            else if (distance.distance >= (3 * params.powerRange)) {
+                // Extreme Range
+                params.range = -30;
+            }
+            else if (distance.distance >= (2 * params.powerRange)) {
+                // Long Range
+                params.range = -10;
+            }
+        }
+
+        function getTokenDistance(token1, token2) {
+            if (token1.get('pageid') != token2.get('pageid')) {
+                logMessage('Cannot measure distance between tokens on different pages');
+                return;
+            }
+
+            var distX_pixels = Math.abs(token1.get('left') - token2.get('left'));
+            var distY_pixels = Math.abs(token1.get('top') - token2.get('top'));
+
+            // 70px = 1 unit
+            var distX = distX_pixels / 70;
+            var distY = distY_pixels / 70;
+            var distance;
+
+            var page = getObj('page', token1.get('pageid'));
+            var measurement = page.get('diagonaltype');
+
+            switch (measurement) {
+                default:
+                case 'pythagorean':
+                    // Euclidean distance, that thing they teach you in school
+                    distance = Math.sqrt(distX * distX + distY * distY);
+                    break;
+                case 'foure':
+                    // Distance as used in D&D 4e
+                    distance = Math.max(distX, distY);
+                    break;
+                case 'threefive':
+                    // Distance as used in D&D 3.5 and Pathfinder
+                    distance = 1.5 * Math.min(distX, distY) + Math.abs(distX - distY);
+                    break;
+                case 'manhattan':
+                    // Manhattan distance
+                    distance = distX + distY;
+                    break;
+            }
+
+            var gridUnitSize = page.get('snapping_increment'); // units per grid square
+            var unitScale = page.get('scale_number'); // scale for 1 unit, eg 1 unit = 5ft
+            var unit = page.get('scale_units'); // unit, eg ft or km
+
+            return {
+                distance: distance, // Distance between token1 and token2 in units
+                squares: distance / gridUnitSize, // Distance between token1 and token2 in squares
+                measurement: '' + (unitScale * distance / gridUnitSize) + unit // Ruler measurement as a string
+            };
+        }
+
+        function getChatHeader(sendChatMessage) {
+            sendChatMessage += `\n--#title|${params.characterName}  summons the warp to burn ${params.targetName} with the Avenger!`;
+            sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
+            sendChatMessage += `\n--#subtitleFontSize|10px`;
+            sendChatMessage += `\n--#subtitleFontColor|#000000`;
+            sendChatMessage += `\n--#leftsub|Power Level ${params.powerLevel}`;
+            sendChatMessage += `\n--#rightsub|PsyRating ${params.psyRating}`;
+
+            return sendChatMessage
+        }
+
+        function getTestFailSection(sendChatMessage, params) {
+            params["hasFailed"] = false
+
+            if (params.hitRoll > params.failTarget) {
+                sendChatMessage += `\n--+DENIED:|${params.hitRoll}`;
+                params.hasFailed = true
+            }
+
+            return sendChatMessage;
+
+        }
+
+        function getPerilSection(sendChatMessage, params) {
+
+            if ((((params.hitRoll % 11) == 0) && params.powerLevel == "Unfettered") || (params.powerLevel == "Push")) {
+                sendChatMessage += `\n--+|[img](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
+                sendChatMessage += `\n--+PERIL OF THE WARP!:|Hit Roll - ${params.hitRoll}`;
+                sendChatMessage += `\n--+Psychic Phenomena:|[[1d100]]`;
+            }
+            else {
+                sendChatMessage += `\n--+|[img](https://media.giphy.com/media/WprqYyQgk0iGlQ5QzD/giphy.gif)`;
+            }
+
+            return sendChatMessage;
+        }
+
+        function getNormalAttack(sendChatMessage, params) {
+            params.range != 0 ? sendChatMessage += `\n--+Range Modifier:|${params.range}` : null;
+            params.aim != 0 ? sendChatMessage += `\n--+Aim Modifier:|${params.aim}` : null;
+            params.calledShot != 0 ? sendChatMessage += `\n--+Called Shot Modifier:|${params.calledShot}` : null;
+            params.runningTarget != 0 ? sendChatMessage += `\n--+Running Target Modifier:|${params.runningTarget}` : null;
+            params.miscModifier != 0 ? sendChatMessage += `\n--+Misc Modifier:|${params.miscModifier}` : null;
+            params.magBonus != 0 ? sendChatMessage += `\n--+Horde Size Modifier:|${params.magBonus}` : null;
+            sendChatMessage += `\n--+Total Modifier:|${params.fullModifier}`;
+            sendChatMessage += `\n--+HitRoll:|${params.hitRoll}`;
+            sendChatMessage += `\n--+Hits:|[[${params.hits}]]`;
+            params.hits > 0 ? sendChatMessage += `\n--+Damage Type:|${params.damageType}` : null;
+            params.tarType == "HORDE" && params.hits > 0 && params.hordeHits > 0 ? sendChatMessage += `\n--+Horde Hits:|[[${params.hordeHits}]]` : null;
+            params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null) : null;
+            if (params.fullModifier - params.rfRoll <= 0) {
+                // RF is not confirmed so clear the exploding dice modifier
+                params.damageRoll = params.damageRoll.replace("!", "")
+            }
+
+            if (params.hits > 0 && params.tarAgilityDos <= 0) {
+                sendChatMessage += `\n--+On FIRE!!!|${params.weaponSpecial}`;
+            }
+
+            params.hits > 0 ? sendChatMessage += `\n--+Penetration:|${params.penetration}` : null;
+            sendChatMessage += `\n--vbetweentokens|${params.selectedTokenID} ${params.targetID} beam-fire`
+
+            var awValue = "";
+            for (lcv = 0; lcv < params.hits; lcv++) {
+                var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
+                sendChatMessage += `\n--=Damage${lcv}|[[${params.damageRoll}]]`;
+                sendChatMessage += `\n--+Hit ${lcv + 1}:|${whereHit} for [$Damage${lcv}]`;
+                lcv > 0 ? awValue += ";" : null;
+                awValue += `${whereHit}-[$Damage${lcv}]`;
+            }
+
+            // if we hit then add the hits rolls
+            if (params.hits > 0) {
+                sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _hordeHits|${params.hordeHits}`;
+            }
+
+            return sendChatMessage;
+        }
+
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -150,6 +310,7 @@ on("chat:message", function (msg) {
 
         // read values off the character sheet
         readCharacterSheet();
+        getRange(params)
 
         params["fullModifier"] = params.willpower + params.willpowerAdv + params.range + params.aim + params.calledShot + params.runningTarget + params.miscModifier + (5 * params.psyRating) + params.magBonus;
 
@@ -160,67 +321,22 @@ on("chat:message", function (msg) {
         params["hitRoll"] = randomInteger(100);
         params["rfRoll"] = randomInteger(100);
         params["hitsTotal"] = Math.floor((params.fullModifier - params.hitRoll) / 10);
-        params["hits"] = params.hitsTotal > 0 ? 1 : 0;
-        params["hordeHits"] = params.psyRating;
+        params["hits"] = params.hitsTotal >= 0 ? 1 : 0;
 
         // output parameters to the log
         logMessage(params);
 
         var sendChatMessage = "";
-        const powerCardStart = "!power {{";
-        const powerCardStop = "\n}}";
-
-        sendChatMessage += powerCardStart;
-        sendChatMessage += `\n--name|${params.characterName} summons the warp to burn ${params.targetName} with the Avenger!`;
-        sendChatMessage += `\n--leftsub|Range ${params.powerRange}`;
-        sendChatMessage += `\n--rightsub|PsyRating ${params.psyRating}`;
-        if (params.hitRoll > params.jamTarget) {
-            sendChatMessage += `\n--Power Level:|${params.powerLevel}`;
-            sendChatMessage += `\n--And is Denied:|${params.hitRoll}`;
-        }
-        else {
-            if ((((params.hitRoll % 11) == 0) && params.powerLevel == "Unfettered") || (params.powerLevel == "Push")) {
-                sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/L4TNHVeOP0WrWyXT5m/giphy.gif)`;
-                sendChatMessage += `\n--PERIL OF THE WARP!:|Hit Roll - ${params.hitRoll} Psychic Phenomena - [[1d100]]`;
-            }
-            else {
-                sendChatMessage += `\n--!showpic|[x](https://media.giphy.com/media/WprqYyQgk0iGlQ5QzD/giphy.gif)`;
-            }
-
-            sendChatMessage += `\n--Power Level:|${params.powerLevel}`;
-            sendChatMessage += `\n--Special:|${params.weaponSpecial}`;
-            params.range != 0 ? sendChatMessage += `\n--Range Modifier:|${params.range}` : null;
-            params.aim != 0 ? sendChatMessage += `\n--Aim Modifier:|${params.aim}` : null;
-            params.calledShot != 0 ? sendChatMessage += `\n--Called Shot Modifier:|${params.calledShot}` : null;
-            params.runningTarget != 0 ? sendChatMessage += `\n--Running Target Modifier:|${params.runningTarget}` : null;
-            params.miscModifier != 0 ? sendChatMessage += `\n--Misc Modifier:|${params.miscModifier}` : null;
-            params.magBonus != 0 ? sendChatMessage += `\n--Horde Size Modifier:|${params.magBonus}` : null;
-            sendChatMessage += `\n--Hits:|[[${params.hits}]]`;
-
-            params.hits > 0 ? sendChatMessage += `\n--Damage Type:|${params.damageType}` : null;
-            params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--Righteous Fury:|Confirmed` : null) : null;
-            params.hits > 0 ? sendChatMessage += `\n--Penetration:|${params.penetration}` : null;
-
-            if (params.tarAgilityDos <= 0) {
-                sendChatMessage += `\n--Target On FIRE!!!`;
-            }
-
-            sendChatMessage += `\n--vfx_opt|${params.tokenID} ${params.targetID} beam-fire`
-            var awValue = "";
-            for (lcv = 0; lcv < params.hits; lcv++) {
-                var whereHit = getHit(reverseRoll(params.hitRoll), lcv);
-                sendChatMessage += `\n--Hit ${lcv + 1}:|${whereHit} for [[ [$Atk${lcv + 1}] ${params.damageRoll}]]`;
-                lcv > 0 ? awValue += ";" : null;
-                awValue += `${whereHit}-[^Atk${lcv + 1}]`;
-            }
-
-            // if we hit then add the hits rolls
-            if (params.hits > 0) {
-                sendChatMessage += `\n--api_DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1`;
-            }
+        var sendChatMessage = "!script {{";
+        sendChatMessage = getChatHeader(sendChatMessage)
+        sendChatMessage = getTestFailSection(sendChatMessage, params)
+        if (!params.hasFailed) {
+            sendChatMessage = getPerilSection(sendChatMessage, params)
+            sendChatMessage = getNormalAttack(sendChatMessage, params)
         }
 
-        sendChatMessage += powerCardStop;
+        sendChatMessage += "\n}}";
+
         logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }

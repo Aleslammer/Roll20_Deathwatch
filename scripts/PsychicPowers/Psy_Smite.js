@@ -261,7 +261,7 @@ on("chat:message", function (msg) {
             sendChatMessage += `\n--+HitRoll:|${params.hitRoll}`;
             sendChatMessage += `\n--+Hits:|[[${params.hits}]]`;
             params.hits > 0 ? sendChatMessage += `\n--+Damage Type:|${params.damageType}` : null;
-            params.hordeHits > 0 ? sendChatMessage += `\n--+Horde Hits:|[[${params.hordeHits}]]` : null;
+            params.tarType == "HORDE" && params.hits > 0 && params.hordeHits > 0 ? sendChatMessage += `\n--+Horde Hits:|[[${params.hordeHits}]]` : null;
             params.hits > 0 ? (params.fullModifier - params.rfRoll > 0 ? sendChatMessage += `\n--+Righteous Fury:|Confirmed` : null) : null;
             if (params.fullModifier - params.rfRoll <= 0) {
                 // RF is not confirmed so clear the exploding dice modifier
