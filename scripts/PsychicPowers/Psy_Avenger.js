@@ -4,7 +4,7 @@ on("ready", function () {
 });
 on("chat:message", function (msg) {
     if (msg.type == "api" && msg.content.indexOf("!Psy_Avenger") == 0) {
-        const showLog = true;
+        const showLog = false;
 
         var params = {}
 
@@ -102,7 +102,7 @@ on("chat:message", function (msg) {
             params["willpower"] = parseInt(getAttrByName(params.characterID, "Willpower"));
             params["willpowerAdv"] = parseInt(getAttrByName(params.characterID, "advanceWP"));
 
-            params["damageRoll"] = `2d10+6`;
+            params["damageRoll"] = `1d10!+12`;
             params["damageType"] = "Energy";
             params["penetration"] = params.psyRating * 2;
             params["powerRange"] = 30;
@@ -149,8 +149,6 @@ on("chat:message", function (msg) {
         function getRange(params) {
             var targetToken = findObjs({ type: 'graphic', _id: params.targetID })[0];
             var sourceToken = findObjs({ type: 'graphic', _id: params.selectedTokenID })[0];
-
-
 
             var distance = getTokenDistance(sourceToken, targetToken)
             params["range"] = 0;
@@ -222,7 +220,7 @@ on("chat:message", function (msg) {
         }
 
         function getChatHeader(sendChatMessage) {
-            sendChatMessage += `\n--#title|${params.characterName}  summons the warp to burn ${params.targetName} with the Avenger!`;
+            sendChatMessage += `\n--#title|${params.characterName} summons the warp to burn ${params.targetName} with the Avenger!`;
             sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
             sendChatMessage += `\n--#subtitleFontSize|10px`;
             sendChatMessage += `\n--#subtitleFontColor|#000000`;
@@ -234,14 +232,12 @@ on("chat:message", function (msg) {
 
         function getTestFailSection(sendChatMessage, params) {
             params["hasFailed"] = false
-
             if (params.hitRoll > params.failTarget) {
                 sendChatMessage += `\n--+DENIED:|${params.hitRoll}`;
                 params.hasFailed = true
             }
 
             return sendChatMessage;
-
         }
 
         function getPerilSection(sendChatMessage, params) {
