@@ -182,7 +182,7 @@ on("chat:message", function (msg) {
 
             sendChatMessage += `\n  --+Damage Type:|${params.damageType}`;
             sendChatMessage += `\n  --+Penetration:|[$Penetration]`;
-            sendChatMessage += `\n  --@vfx_opt|${params.targetID} BloodSplat`;
+            sendChatMessage += `\n  --vtoken|${params.targetID} BloodSplat`;
 
             sendChatMessage = addForceDamage(sendChatMessage)
             sendChatMessage = addHitLocation(sendChatMessage)
