@@ -120,7 +120,7 @@ on("chat:message", function (msg) {
                 if (value) {
                     params["tarType"] = value.get('current').toUpperCase();
                     if (params.tarType == "HORDE") {
-                        params["hordeHits"] = params.psyRating;
+                        params["hordeHits"] = (params.psyRating + randomInteger(10)) - 1;
 
                         params["tarMag"] = parseInt(token.get("bar1_max")) - parseInt(token.get("bar1_value"));
                         if (params.tarMag >= 120) {
@@ -310,7 +310,7 @@ on("chat:message", function (msg) {
         params["hitRoll"] = randomInteger(100);
         params["rfRoll"] = randomInteger(100);
         params["hitsTotal"] = Math.floor((params.fullModifier - params.hitRoll) / 10);
-        params["hits"] = params.hitsTotal > 0 ? 1 : 0;
+        params["hits"] = params.hitsTotal >= 0 ? 1 : 0;
 
         // output parameters to the log
         logMessage(params);
