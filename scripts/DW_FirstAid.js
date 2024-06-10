@@ -1,10 +1,10 @@
 on("ready", function () {
-    var version = '0.0.1';
-    log("-=> DW_Medicae v" + version + " Loaded ");
+    var version = '1.0.0';
+    log("-=> DW_FirstAid v" + version + " Loaded ");
 });
 on("chat:message", function (msg) {
-    if (msg.type == "api" && msg.content.indexOf("!DW_Medicae") == 0) {
-        const showLog = true;
+    if (msg.type == "api" && msg.content.indexOf("!DW_FirstAid") == 0) {
+        const showLog = false;
 
         var params = {}
 
@@ -51,7 +51,6 @@ on("chat:message", function (msg) {
             }
         }
 
-
         args = msg.content.split("--");
 
         // parse all the arguments
@@ -68,7 +67,7 @@ on("chat:message", function (msg) {
         const scriptCardStop = "\n}}";
 
         sendChatMessage += scriptCardStart;
-        sendChatMessage += `\n--#title|${params.characterName} is healing ${params.targetName}!`;
+        sendChatMessage += `\n--#title|${params.characterName} is attempting to heal ${params.targetName}!`;
         sendChatMessage += `\n--#titleCardBackground|${params.bgColor}`;
         sendChatMessage += `\n--#subtitleFontSize|10px`;
         sendChatMessage += `\n--#subtitleFontColor|#000000`;
@@ -76,20 +75,17 @@ on("chat:message", function (msg) {
         sendChatMessage += `\n--=CheckRoll|1d100`;
         sendChatMessage += `\n--=medTest|[Int]${params.int} + [Intadv]${params.advanceInt} + [MedSkillAdv]${params.medicaeSkillAdv} + [Misc]${params.miscModifier} - [Roll][$CheckRoll]`;
         sendChatMessage += `\n--+Skill Check:|[$medTest]`;
-
-        // TODO: Medicae DoS addition to medicae
-        sendChatMessage += `\n--=dos|[$medTest] / 10 {FLOOR}`;
-
-        sendChatMessage += `\n--=intBonus|${params.int}`;
-        sendChatMessage += `\n--=healValue|1d5 + ${params.intBonus} + [$dos]`;
-        sendChatMessage += `\n--+Heal:|[$healValue]`;
-
-        // TODO: Can we auto heal? 
-        // Problem is how do we treat already treated wounds?
-        // sendChat("", `!alter --target|${params.tarTokenID} --bar|1 --amount|${woundTotal}`);
-        // sendChatMessage += `\n--@DW_ApplyWounds|_targetCharID|${params.targetCharID} _tarTokenID|${params.targetID} _pen|${params.penetration} _hits|${awValue} _alterBar|1 _felling|${params.felling} _hellfire|${params.hellfire} _blast|${params.blast} _toxic|${params.toxic}`;
+        sendChatMessage += `\n--? [$medTest] -gt -1 |[
+        --=dos|[$medTest] / 10 {FLOOR} {MAX:4}
+        --=intBonus|${params.int}
+        --=healValue|1d5r<[$dos] + ${params.intBonus}
+        --+Heal:|[$healValue]
+        --]|[
+        --+Failed to Heal any wounds!|
+        --]|`;
 
         sendChatMessage += scriptCardStop;
+
         logMessage(sendChatMessage);
         sendChat("From", sendChatMessage);
     }
