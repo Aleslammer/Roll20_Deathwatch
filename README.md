@@ -7,6 +7,7 @@ Location for Deathwatch API scripts and Character Sheets for Roll20.
 1. [DW_MeleeAttack](docs/meleeattack.md) - A melee attack script that will target an enemy and determine hit locations.   Also has support for force weapons to and psychic damage.
 2. [DW_RangedAttack](docs/rangedattack.md) - A ranged attack that will target an enemy and determine hit locations.  Also tracks ammo on the sheet and determines hit locations.
 3. [DW_ApplyWounds](docs/applywounds.md) - A helper script for determing wounds of the target.  Optionally will apply wounds to the target.
+4. [DW_FirstAid](docs/firstaid.md) - A helper script for rolling first aid. Including degrees of success homebrew rules.
 
 ## Psychic Powers
 
